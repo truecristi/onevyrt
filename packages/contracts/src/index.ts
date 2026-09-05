@@ -17,3 +17,4 @@ export * from "./block-responses";
 export * from "./prerequisites";
 export * from "./lesson-applications";
 export * from "./formulas";
+export * from "./scenarios";
