@@ -25,3 +25,10 @@ export class CustomerProfileNotFoundError extends Error {
     this.name = "CustomerProfileNotFoundError";
   }
 }
+
+export class OfferNotFoundError extends Error {
+  constructor(offerId: string) {
+    super(`Offer ${offerId} not found in this workspace`);
+    this.name = "OfferNotFoundError";
+  }
+}
