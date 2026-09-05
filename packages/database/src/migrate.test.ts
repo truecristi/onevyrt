@@ -19,7 +19,7 @@ describe("runMigrations", () => {
     // whenever a new migration adds a table - see the table-name assertion
     // below, which needs the same update.
     await client.query(`
-      DROP TABLE IF EXISTS lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
+      DROP TABLE IF EXISTS lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
     `);
   });
 
@@ -41,6 +41,7 @@ describe("runMigrations", () => {
       "0008_evidence.sql",
       "0009_audit_log_workspace_index.sql",
       "0010_curriculum_programs.sql",
+      "0011_lesson_blocks.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
@@ -57,6 +58,7 @@ describe("runMigrations", () => {
       "decisions",
       "evidence",
       "goals",
+      "lesson_blocks",
       "lessons",
       "offers",
       "program_versions",

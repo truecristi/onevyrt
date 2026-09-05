@@ -469,3 +469,38 @@ export const lessons = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-CURRICULUM-002 vertical slice: structured lesson blocks (spec
+ * section 21's 19 block types - orientation, concept, why, story,
+ * metaphor, figure, worked-example, counterexample, calculation,
+ * reflection, knowledge-check, practice, build, implementation,
+ * coach-prompt, evidence, review, celebration, resource). Each type has a
+ * genuinely different shape, so `payload` is jsonb rather than 19 tables
+ * or 19 nullable column groups - the type-specific structure is enforced
+ * by a Zod discriminated union at the API boundary
+ * (packages/contracts/src/lesson-blocks.ts), not by the database.
+ *
+ * Same editability rule as lessons: blocks can only be created while the
+ * parent lesson's program version is still "draft"
+ * (assertProgramVersionEditable, curriculum-use-cases.ts). This first
+ * slice is create + list only - no update or delete yet, the same
+ * incremental scoping every other slice in this codebase has used.
+ */
+export const lessonBlocks = pgTable(
+  "lesson_blocks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    orderIndex: integer("order_index").notNull().default(0),
+    blockType: text("block_type").notNull(),
+    payload: jsonb("payload").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byLesson: index("lesson_blocks_lesson_id_idx").on(table.lessonId),
+  }),
+);
