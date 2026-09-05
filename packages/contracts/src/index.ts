@@ -10,3 +10,4 @@ export * from "./decisions";
 export * from "./evidence";
 export * from "./audit-log";
 export * from "./curriculum";
+export * from "./lesson-blocks";
