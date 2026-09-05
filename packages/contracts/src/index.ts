@@ -30,3 +30,4 @@ export * from "./coaching";
 export * from "./artifact-proposals";
 export * from "./task-proposals";
 export * from "./sketch-specifications";
+export * from "./ai-call-records";
