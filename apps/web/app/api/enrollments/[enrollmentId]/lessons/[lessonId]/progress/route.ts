@@ -8,6 +8,7 @@ import {
   LessonBlockNotFoundError,
   LessonProgressNotFoundError,
   PrerequisitesNotMetError,
+  LessonCompletionRequirementsNotMetError,
 } from "@onevyrt/domain";
 import { logger, newCorrelationId } from "@onevyrt/observability";
 import { getServerContext } from "@/lib/server";
@@ -100,6 +101,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
     if (error instanceof LessonProgressNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    if (error instanceof LessonCompletionRequirementsNotMetError) {
+      return NextResponse.json({ error: error.message, missing: error.missing }, { status: 409 });
     }
     logger.error("lesson progress update failed", {
       correlationId,
