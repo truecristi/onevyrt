@@ -9,3 +9,4 @@ export * from "./business-metric-use-cases";
 export * from "./assumption-use-cases";
 export * from "./decision-use-cases";
 export * from "./evidence-use-cases";
+export * from "./audit-log-use-cases";
