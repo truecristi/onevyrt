@@ -10,6 +10,7 @@ import {
   setScenarioOverride,
   removeScenarioOverride,
   resolveScenarioAssumptions,
+  compareScenarios,
 } from "./scenario-use-cases";
 import {
   DuplicateScenarioTypeError,
@@ -244,6 +245,85 @@ describe("scenario modeling (Phase 4 second slice)", () => {
         actorUserId: alice.user.id,
         workspaceId: alice.workspace.id,
         scenarioId: "00000000-0000-0000-0000-000000000000",
+      }),
+    ).rejects.toThrow(ScenarioNotFoundError);
+  });
+
+  it("compares several scenarios side by side, preserving requested order, and rejects an unknown scenario id", async () => {
+    const alice = await registerWithWorkspace("alice5@example.com", "Alice Co 5");
+
+    const conversion = await createAssumption(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      statement: "Conversion is 2%",
+      description: "",
+      source: "",
+      sourceType: "estimate-user",
+      confidence: "medium",
+      unit: "%",
+      value: 2,
+    });
+    const churn = await createAssumption(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      statement: "Churn is 5%",
+      description: "",
+      source: "",
+      sourceType: "estimate-user",
+      confidence: "medium",
+      unit: "%",
+      value: 5,
+    });
+
+    const worst = await createScenario(db, {
+      actorUserId: alice.user.id,
+      workspaceId: alice.workspace.id,
+      name: "Worst case",
+      scenarioType: "worst",
+    });
+    const best = await createScenario(db, {
+      actorUserId: alice.user.id,
+      workspaceId: alice.workspace.id,
+      name: "Best case",
+      scenarioType: "best",
+    });
+    await setScenarioOverride(db, {
+      actorUserId: alice.user.id,
+      workspaceId: alice.workspace.id,
+      scenarioId: best.id,
+      assumptionId: conversion.id,
+      value: 4,
+    });
+    await setScenarioOverride(db, {
+      actorUserId: alice.user.id,
+      workspaceId: alice.workspace.id,
+      scenarioId: worst.id,
+      assumptionId: conversion.id,
+      value: 1,
+    });
+    // churn is left un-overridden in both scenarios - both should fall back to baseline.
+
+    const comparison = await compareScenarios(db, {
+      actorUserId: alice.user.id,
+      workspaceId: alice.workspace.id,
+      scenarioIds: [worst.id, best.id],
+    });
+
+    // Order matches the request (worst, then best), not creation order.
+    expect(comparison.scenarios.map((s) => s.id)).toEqual([worst.id, best.id]);
+
+    const conversionRow = comparison.rows.find((r) => r.assumptionId === conversion.id);
+    expect(conversionRow?.baselineValue).toBe(2);
+    expect(conversionRow?.valuesByScenarioId).toEqual({ [worst.id]: 1, [best.id]: 4 });
+
+    const churnRow = comparison.rows.find((r) => r.assumptionId === churn.id);
+    expect(churnRow?.valuesByScenarioId).toEqual({ [worst.id]: 5, [best.id]: 5 });
+
+    await expect(
+      compareScenarios(db, {
+        actorUserId: alice.user.id,
+        workspaceId: alice.workspace.id,
+        scenarioIds: [best.id, "00000000-0000-0000-0000-000000000000"],
       }),
     ).rejects.toThrow(ScenarioNotFoundError);
   });

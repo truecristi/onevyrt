@@ -1,7 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
-import type { ResolvedScenarioAssumption, ScenarioType } from "@onevyrt/contracts";
+import type {
+  ResolvedScenarioAssumption,
+  ScenarioComparison,
+  ScenarioType,
+} from "@onevyrt/contracts";
 import { isUniqueViolation } from "./db-errors";
 import { requireWorkspaceMembership } from "./workspace-use-cases";
 import {
@@ -236,4 +240,81 @@ export async function resolveScenarioAssumptions(
       isOverridden: override !== undefined,
     };
   });
+}
+
+export interface CompareScenariosInput {
+  actorUserId: string;
+  workspaceId: string;
+  scenarioIds: string[];
+}
+
+/**
+ * PRD-NUMBERS-007 vertical slice: comparison tools (README "Numbers and
+ * modeling" -> "Comparison tools", seventh slice of Phase 4; spec's
+ * "Compare: compare scenarios, options, drafts or actual-versus-plan").
+ * Same resolution rule as resolveScenarioAssumptions - override if one
+ * exists, otherwise the baseline - applied to every requested scenario
+ * at once, one row per assumption with a column per scenario, so a
+ * side-by-side table needs a single request instead of N.
+ */
+export async function compareScenarios(
+  db: Database,
+  input: CompareScenariosInput,
+): Promise<ScenarioComparison> {
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
+
+  const scenarios = await db
+    .select()
+    .from(schema.scenarios)
+    .where(
+      and(
+        eq(schema.scenarios.workspaceId, input.workspaceId),
+        inArray(schema.scenarios.id, input.scenarioIds),
+      ),
+    );
+  const foundIds = new Set(scenarios.map((s) => s.id));
+  const missingId = input.scenarioIds.find((id) => !foundIds.has(id));
+  if (missingId) throw new ScenarioNotFoundError(missingId);
+
+  const workspaceAssumptions = await db
+    .select()
+    .from(schema.assumptions)
+    .where(eq(schema.assumptions.workspaceId, input.workspaceId));
+
+  const overrides = await db
+    .select()
+    .from(schema.scenarioAssumptionOverrides)
+    .where(inArray(schema.scenarioAssumptionOverrides.scenarioId, input.scenarioIds));
+  const overrideByKey = new Map(
+    overrides.map((o) => [`${o.scenarioId}:${o.assumptionId}`, o.value]),
+  );
+
+  const rows = workspaceAssumptions.map((assumption) => {
+    const valuesByScenarioId: Record<string, number | null> = {};
+    for (const scenarioId of input.scenarioIds) {
+      const override = overrideByKey.get(`${scenarioId}:${assumption.id}`);
+      valuesByScenarioId[scenarioId] = override ?? assumption.value;
+    }
+    return {
+      assumptionId: assumption.id,
+      statement: assumption.statement,
+      unit: assumption.unit,
+      baselineValue: assumption.value,
+      valuesByScenarioId,
+    };
+  });
+
+  // Preserve the caller's requested order rather than the DB's arbitrary one.
+  const scenarioById = new Map(scenarios.map((s) => [s.id, s]));
+  const orderedScenarios = input.scenarioIds.map((id) => {
+    const scenario = scenarioById.get(id);
+    if (!scenario) throw new ScenarioNotFoundError(id);
+    return {
+      id: scenario.id,
+      name: scenario.name,
+      scenarioType: scenario.scenarioType as ScenarioType,
+    };
+  });
+
+  return { scenarios: orderedScenarios, rows };
 }
