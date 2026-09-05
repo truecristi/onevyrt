@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createTaskRequestSchema } from "@onevyrt/contracts";
-import {
-  createTask,
-  listTasks,
-  ProjectNotFoundError,
-  TaskBlockerInvalidError,
-} from "@onevyrt/domain";
+import { createProjectRequestSchema } from "@onevyrt/contracts";
+import { createProject, listProjects } from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import { logger, newCorrelationId } from "@onevyrt/observability";
 import { getServerContext } from "@/lib/server";
@@ -25,8 +20,11 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { db } = getServerContext();
 
   try {
-    const tasks = await listTasks(db, { workspaceId: params.workspaceId, actorUserId: user.id });
-    return NextResponse.json({ tasks });
+    const projects = await listProjects(db, {
+      workspaceId: params.workspaceId,
+      actorUserId: user.id,
+    });
+    return NextResponse.json({ projects });
   } catch (error) {
     if (error instanceof WorkspaceAccessDeniedError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
   }
 
-  const parsed = createTaskRequestSchema.safeParse(await request.json().catch(() => null));
+  const parsed = createProjectRequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request", issues: parsed.error.flatten() },
@@ -58,33 +56,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   const { db } = getServerContext();
 
   try {
-    const task = await createTask(db, {
+    const project = await createProject(db, {
       workspaceId: params.workspaceId,
       actorUserId: user.id,
-      title: parsed.data.title,
+      name: parsed.data.name,
       description: parsed.data.description,
-      priority: parsed.data.priority,
-      ...(parsed.data.dueDate ? { dueDate: new Date(parsed.data.dueDate) } : {}),
-      ...(parsed.data.projectId !== undefined ? { projectId: parsed.data.projectId } : {}),
-      ...(parsed.data.blockedByTaskId !== undefined
-        ? { blockedByTaskId: parsed.data.blockedByTaskId }
-        : {}),
     });
-    logger.info("task created", {
+    logger.info("project created", {
       correlationId,
       userId: user.id,
       workspaceId: params.workspaceId,
-      taskId: task.id,
+      projectId: project.id,
     });
-    return NextResponse.json({ task }, { status: 201 });
+    return NextResponse.json({ project }, { status: 201 });
   } catch (error) {
     if (error instanceof WorkspaceAccessDeniedError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
-    if (error instanceof ProjectNotFoundError || error instanceof TaskBlockerInvalidError) {
-      return NextResponse.json({ error: error.message }, { status: 422 });
-    }
-    logger.error("task creation failed", { correlationId, error: (error as Error).message });
-    return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
+    logger.error("project creation failed", { correlationId, error: (error as Error).message });
+    return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
   }
 }
