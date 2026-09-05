@@ -1,15 +1,14 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
-import { assertCanReadWorkspace } from "@onevyrt/auth";
-import { getMembership } from "./workspace-use-cases";
+import { requireWorkspaceMembership } from "./workspace-use-cases";
 import { CustomerProfileNotFoundError } from "./errors";
 
 /**
  * PRD-BIZCORE-003 vertical slice: customer profiles. Same tenancy shape as
- * business-core-use-cases.ts - every function re-derives membership and
- * fails closed via assertCanReadWorkspace, and every write is scoped by
- * workspaceId in the WHERE clause, not just the row's own id.
+ * business-core-use-cases.ts - every function re-derives membership via
+ * requireWorkspaceMembership (ADR-0003) and fails closed, and every write
+ * is scoped by workspaceId in the WHERE clause, not just the row's own id.
  */
 
 export interface CustomerProfileRecord {
@@ -36,8 +35,7 @@ export async function createCustomerProfile(
   db: Database,
   input: CreateCustomerProfileInput,
 ): Promise<CustomerProfileRecord> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   return withTransaction(db, async (tx) => {
     const [profile] = await tx
@@ -72,8 +70,7 @@ export async function listCustomerProfiles(
   db: Database,
   input: ListCustomerProfilesInput,
 ): Promise<CustomerProfileRecord[]> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   const rows = await db
     .select()
@@ -99,8 +96,7 @@ export async function updateCustomerProfile(
   db: Database,
   input: UpdateCustomerProfileInput,
 ): Promise<CustomerProfileRecord> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   return withTransaction(db, async (tx) => {
     const patch: Partial<typeof schema.customerProfiles.$inferInsert> = { updatedAt: new Date() };
