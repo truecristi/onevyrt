@@ -13,3 +13,4 @@ export * from "./curriculum";
 export * from "./lesson-blocks";
 export * from "./progress";
 export * from "./notes-bookmarks";
+export * from "./block-responses";
