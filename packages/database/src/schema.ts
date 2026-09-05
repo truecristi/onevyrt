@@ -114,3 +114,31 @@ export const goals = pgTable(
     byWorkspace: index("goals_workspace_id_idx").on(table.workspaceId),
   }),
 );
+
+/**
+ * Phase 2 schema (README "Core user and business data" - second slice):
+ * customer profiles. Unlike business_profiles (one per workspace), a
+ * workspace can have many customer profiles - one per segment/persona
+ * (master spec §6.13 "Customers and Raving Fans" is the much larger future
+ * feature this is a deliberately small first step toward: journey,
+ * promises, delivery evidence, complaints/recovery and a transparent score
+ * are explicitly not part of this slice).
+ */
+export const customerProfiles = pgTable(
+  "customer_profiles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    painPoints: text("pain_points").notNull().default(""),
+    desiredOutcome: text("desired_outcome").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("customer_profiles_workspace_id_idx").on(table.workspaceId),
+  }),
+);
