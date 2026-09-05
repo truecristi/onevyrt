@@ -285,3 +285,37 @@ export const assumptions = pgTable(
     byWorkspace: index("assumptions_workspace_id_idx").on(table.workspaceId),
   }),
 );
+
+/**
+ * PRD-BIZCORE-008 vertical slice: decisions. The Decision node from the
+ * spec's canonical graph (section 3.2), between Model and Action - a
+ * recorded business decision with its context and outcome. Not yet linked
+ * to the assumptions/models that informed it or the actions it produces;
+ * those links are later phases once those entities exist to link against.
+ *
+ * decidedAt follows the same "reflects current state, not history" rule as
+ * tasks.completedAt: it is set when status becomes "decided" and cleared
+ * for any other status, including "reversed" - a reversed decision is no
+ * longer a currently-decided one, so a stale decidedAt would be
+ * misleading. This is a deliberate simplification: it does not preserve
+ * "when was this originally decided" as a separate historical fact.
+ */
+export const decisions = pgTable(
+  "decisions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    context: text("context").notNull().default(""),
+    outcome: text("outcome").notNull().default(""),
+    status: text("status").notNull().default("proposed"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("decisions_workspace_id_idx").on(table.workspaceId),
+  }),
+);
