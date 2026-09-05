@@ -206,3 +206,32 @@ export class LessonApplicationResourceNotFoundError extends Error {
     this.name = "LessonApplicationResourceNotFoundError";
   }
 }
+
+export interface MissingCompletionRequirement {
+  lessonBlockId: string;
+  blockType: string;
+  reason: string;
+}
+
+/**
+ * "Completion is based on accepted outputs and evidence, not time
+ * watched" (spec section 3.4). Thrown by updateLessonProgress
+ * (progress-use-cases.ts) when a caller tries to mark a lesson
+ * "completed" without having actually answered its knowledge checks,
+ * submitted its reflections, or linked its build activities to a real
+ * business record - see completion-use-cases.ts's
+ * assertLessonCompletionRequirementsMet.
+ */
+export class LessonCompletionRequirementsNotMetError extends Error {
+  constructor(
+    lessonId: string,
+    public readonly missing: MissingCompletionRequirement[],
+  ) {
+    super(
+      `Lesson ${lessonId} cannot be completed yet: ${missing
+        .map((m) => `${m.blockType} block ${m.lessonBlockId} (${m.reason})`)
+        .join("; ")}`,
+    );
+    this.name = "LessonCompletionRequirementsNotMetError";
+  }
+}

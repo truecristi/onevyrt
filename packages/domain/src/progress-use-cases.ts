@@ -4,6 +4,7 @@ import { schema, withTransaction } from "@onevyrt/database";
 import type { LessonProgressStatus } from "@onevyrt/contracts";
 import { isUniqueViolation } from "./db-errors";
 import { assertPrerequisitesMet } from "./prerequisite-use-cases";
+import { assertLessonCompletionRequirementsMet } from "./completion-use-cases";
 import {
   ProgramVersionNotFoundError,
   LessonNotFoundError,
@@ -169,6 +170,14 @@ export async function updateLessonProgress(
     if (!block || block.lessonId !== input.lessonId) {
       throw new LessonBlockNotFoundError(input.currentBlockId);
     }
+  }
+
+  // "Completion is based on accepted outputs and evidence, not time
+  // watched" (spec section 3.4) - checked here, the single place a
+  // lesson actually transitions to "completed", rather than trusting
+  // the caller (completion-use-cases.ts).
+  if (input.status === "completed") {
+    await assertLessonCompletionRequirementsMet(db, input.enrollmentId, input.lessonId);
   }
 
   return withTransaction(db, async (tx) => {
