@@ -319,3 +319,43 @@ export const decisions = pgTable(
     byWorkspace: index("decisions_workspace_id_idx").on(table.workspaceId),
   }),
 );
+
+/**
+ * PRD-BIZCORE-009 vertical slice: evidence. The Evidence node from the
+ * spec's canonical graph (section 3.2), which in the full model connects
+ * to actions, experiments and reviews as well - this slice wires it to
+ * the two entities that already exist, assumptions and decisions, via
+ * optional links. Both are ON DELETE SET NULL rather than CASCADE:
+ * deleting an assumption or decision should not destroy the evidence that
+ * was gathered, only detach it.
+ *
+ * Cross-workspace link integrity (an assumptionId/decisionId that exists
+ * but belongs to a *different* workspace) is not enforceable by a foreign
+ * key alone, since the FK only checks the row exists, not which workspace
+ * it belongs to. That check is done in application code
+ * (evidence-use-cases.ts), the same tradeoff every other tenant-scoped
+ * table in this schema makes.
+ */
+export const evidence = pgTable(
+  "evidence",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    sourceUrl: text("source_url").notNull().default(""),
+    strength: text("strength").notNull().default("moderate"),
+    assumptionId: uuid("assumption_id").references(() => assumptions.id, { onDelete: "set null" }),
+    decisionId: uuid("decision_id").references(() => decisions.id, { onDelete: "set null" }),
+    collectedAt: timestamp("collected_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("evidence_workspace_id_idx").on(table.workspaceId),
+    byAssumption: index("evidence_assumption_id_idx").on(table.assumptionId),
+    byDecision: index("evidence_decision_id_idx").on(table.decisionId),
+  }),
+);
