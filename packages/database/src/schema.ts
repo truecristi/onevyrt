@@ -1190,3 +1190,43 @@ export const experiments = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-BUILD-008 vertical slice: launches (README "Build and execution" ->
+ * "Launch workflows", eighth and final slice of Phase 5; spec's guided
+ * business-transformation lifecycle "Define, Offer, Numbers, Build,
+ * Launch, Leads, Improve" - this is the Launch stage). A launch is an
+ * optionally offer-linked plan with a target/actual date and an ordered
+ * checklist - same jsonb-array-for-an-ordered-wholesale-edited-list
+ * pattern as offers' offerComponents/bonuses/objections, not a normalized
+ * child table, since a launch checklist belongs to exactly one launch and
+ * is edited as a whole list, not independently queried elsewhere.
+ * Leads/campaigns (the spec's next lifecycle stage) stay a later, separate
+ * slice - this only covers getting a specific offer out the door.
+ */
+export const launches = pgTable(
+  "launches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    offerId: uuid("offer_id").references(() => offers.id, { onDelete: "set null" }),
+    status: text("status").notNull().default("planning"),
+    launchDate: timestamp("launch_date", { withTimezone: true }),
+    notes: text("notes").notNull().default(""),
+    /** Array of {label, done} - the launch's ordered readiness checklist. */
+    checklist: jsonb("checklist").notNull().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("launches_workspace_id_idx").on(table.workspaceId),
+    byOffer: index("launches_offer_id_idx").on(table.offerId),
+    statusCheck: check(
+      "launches_status_check",
+      sql`${table.status} IN ('planning', 'scheduled', 'live', 'completed', 'cancelled')`,
+    ),
+  }),
+);

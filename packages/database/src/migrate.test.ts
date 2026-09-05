@@ -19,7 +19,7 @@ describe("runMigrations", () => {
     // whenever a new migration adds a table - see the table-name assertion
     // below, which needs the same update.
     await client.query(`
-      DROP TABLE IF EXISTS experiments, artifact_versions, funnel_steps, funnel_stages, scenario_assumption_overrides, scenarios, formula_definitions, lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, projects, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
+      DROP TABLE IF EXISTS launches, experiments, artifact_versions, funnel_steps, funnel_stages, scenario_assumption_overrides, scenarios, formula_definitions, lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, projects, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
     `);
   });
 
@@ -58,6 +58,7 @@ describe("runMigrations", () => {
       "0025_task_project_system.sql",
       "0026_experiments.sql",
       "0027_evidence_experiment_link.sql",
+      "0028_launches.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
@@ -82,6 +83,7 @@ describe("runMigrations", () => {
       "funnel_stages",
       "funnel_steps",
       "goals",
+      "launches",
       "lesson_applications",
       "lesson_blocks",
       "lesson_prerequisites",
