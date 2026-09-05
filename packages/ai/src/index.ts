@@ -15,7 +15,8 @@ export * from "./providers/deterministic";
 export * from "./prompt-registry";
 export * from "./run-prompt";
 
-// Re-exporting also registers this template as a side effect of importing
+// Re-exporting also registers each of these as a side effect of importing
 // this package - see prompt-registry.ts's doc comment for why
 // registration happens at module load rather than lazily.
 export * from "./prompts/explain-calculation";
+export * from "./prompts/coaching-ask";
