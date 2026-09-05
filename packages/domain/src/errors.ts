@@ -60,3 +60,10 @@ export class DecisionNotFoundError extends Error {
     this.name = "DecisionNotFoundError";
   }
 }
+
+export class EvidenceNotFoundError extends Error {
+  constructor(evidenceId: string) {
+    super(`Evidence ${evidenceId} not found in this workspace`);
+    this.name = "EvidenceNotFoundError";
+  }
+}

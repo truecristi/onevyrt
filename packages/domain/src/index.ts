@@ -8,3 +8,4 @@ export * from "./task-use-cases";
 export * from "./business-metric-use-cases";
 export * from "./assumption-use-cases";
 export * from "./decision-use-cases";
+export * from "./evidence-use-cases";
