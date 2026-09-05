@@ -504,3 +504,76 @@ export const lessonBlocks = pgTable(
     byLesson: index("lesson_blocks_lesson_id_idx").on(table.lessonId),
   }),
 );
+
+/**
+ * PRD-CURRICULUM-003 vertical slice: progress tracking and resume
+ * behavior. Unlike programs/versions/lessons/blocks, enrollments and
+ * progress belong to an individual learner's own account, not a
+ * workspace - a person can belong to several workspaces but their
+ * curriculum progress is personal (matches the spec's Enrollment ->
+ * LearnerAttempt model, section 21).
+ *
+ * A learner may only enroll in a *published* program version
+ * (curriculum-use-cases.ts already guarantees a published version is
+ * frozen, so enrolling never targets a moving target). Re-enrolling in
+ * the same version is rejected (unique per user+version) rather than
+ * silently creating a duplicate.
+ */
+export const enrollments = pgTable(
+  "enrollments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    programVersionId: uuid("program_version_id")
+      .notNull()
+      .references(() => programVersions.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("active"),
+    enrolledAt: timestamp("enrolled_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (table) => ({
+    byUser: index("enrollments_user_id_idx").on(table.userId),
+    uniquePerUserAndVersion: unique("enrollments_user_id_program_version_id_key").on(
+      table.userId,
+      table.programVersionId,
+    ),
+  }),
+);
+
+/**
+ * One row per (enrollment, lesson) - the LearnerAttempt shape, scoped
+ * down to what resuming actually needs. currentBlockId is how "resume at
+ * the exact block, see saved state" (section 3.2) is implemented: the UI
+ * reads it back and reopens the lesson there rather than at block one.
+ * ON DELETE SET NULL rather than CASCADE - if a block were ever removed,
+ * a learner's progress record should survive, just without a precise
+ * resume point.
+ */
+export const lessonProgress = pgTable(
+  "lesson_progress",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    enrollmentId: uuid("enrollment_id")
+      .notNull()
+      .references(() => enrollments.id, { onDelete: "cascade" }),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("in_progress"),
+    currentBlockId: uuid("current_block_id").references(() => lessonBlocks.id, {
+      onDelete: "set null",
+    }),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byEnrollment: index("lesson_progress_enrollment_id_idx").on(table.enrollmentId),
+    uniquePerEnrollmentAndLesson: unique("lesson_progress_enrollment_id_lesson_id_key").on(
+      table.enrollmentId,
+      table.lessonId,
+    ),
+  }),
+);
