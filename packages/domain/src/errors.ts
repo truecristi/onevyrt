@@ -67,3 +67,53 @@ export class EvidenceNotFoundError extends Error {
     this.name = "EvidenceNotFoundError";
   }
 }
+
+export class ProgramNotFoundError extends Error {
+  constructor(programId: string) {
+    super(`Program ${programId} not found`);
+    this.name = "ProgramNotFoundError";
+  }
+}
+
+export class DuplicateProgramSlugError extends Error {
+  constructor(slug: string) {
+    super(`A program with slug ${slug} already exists`);
+    this.name = "DuplicateProgramSlugError";
+  }
+}
+
+export class ProgramVersionNotFoundError extends Error {
+  constructor(programVersionId: string) {
+    super(`Program version ${programVersionId} not found`);
+    this.name = "ProgramVersionNotFoundError";
+  }
+}
+
+export class DuplicateProgramVersionError extends Error {
+  constructor(programId: string, version: number) {
+    super(`Program ${programId} already has a version ${version}`);
+    this.name = "DuplicateProgramVersionError";
+  }
+}
+
+/** Thrown when creating/editing a lesson on a program version that is no longer "draft" - see the schema.ts doc comment on programVersions for why publishing freezes it. */
+export class ProgramVersionNotEditableError extends Error {
+  constructor(programVersionId: string) {
+    super(`Program version ${programVersionId} is published and can no longer be edited`);
+    this.name = "ProgramVersionNotEditableError";
+  }
+}
+
+export class LessonNotFoundError extends Error {
+  constructor(lessonId: string) {
+    super(`Lesson ${lessonId} not found`);
+    this.name = "LessonNotFoundError";
+  }
+}
+
+export class DuplicateLessonSlugError extends Error {
+  constructor(slug: string) {
+    super(`This program version already has a lesson with slug ${slug}`);
+    this.name = "DuplicateLessonSlugError";
+  }
+}

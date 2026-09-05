@@ -10,3 +10,5 @@ export * from "./assumption-use-cases";
 export * from "./decision-use-cases";
 export * from "./evidence-use-cases";
 export * from "./audit-log-use-cases";
+export * from "./platform-admin-use-cases";
+export * from "./curriculum-use-cases";
