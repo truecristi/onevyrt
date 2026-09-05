@@ -880,3 +880,38 @@ export const scenarioAssumptionOverrides = pgTable(
     ).on(table.scenarioId, table.assumptionId),
   }),
 );
+
+/**
+ * PRD-NUMBERS-003 vertical slice: funnel mathematics (README "Numbers
+ * and modeling" -> "Funnel mathematics", third slice of Phase 4). One
+ * ordered funnel per workspace, top (e.g. "Traffic") to bottom (e.g.
+ * "Sales"). conversionRate is nullable and means "share of the previous
+ * stage's volume that reaches this one" - so the very first stage
+ * (lowest orderIndex) has no meaningful incoming conversion rate and is
+ * expected to leave it null; every later stage needs one to compute
+ * backward from a target (funnel-use-cases.ts's
+ * calculateFunnelRequirements). unique(workspace_id, order_index) keeps
+ * one stage per position, the same "no duplicate ordering" property
+ * lessons/lessonBlocks get from their own orderIndex + parent scoping.
+ */
+export const funnelStages = pgTable(
+  "funnel_stages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    orderIndex: integer("order_index").notNull(),
+    conversionRate: doublePrecision("conversion_rate"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("funnel_stages_workspace_id_idx").on(table.workspaceId),
+    uniqueOrderPerWorkspace: unique("funnel_stages_workspace_id_order_index_key").on(
+      table.workspaceId,
+      table.orderIndex,
+    ),
+  }),
+);
