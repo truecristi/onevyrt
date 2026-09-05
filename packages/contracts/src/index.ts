@@ -18,3 +18,4 @@ export * from "./prerequisites";
 export * from "./lesson-applications";
 export * from "./formulas";
 export * from "./scenarios";
+export * from "./funnel-stages";
