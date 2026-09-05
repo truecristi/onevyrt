@@ -3,6 +3,7 @@ import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
 import type { LessonProgressStatus } from "@onevyrt/contracts";
 import { isUniqueViolation } from "./db-errors";
+import { assertPrerequisitesMet } from "./prerequisite-use-cases";
 import {
   ProgramVersionNotFoundError,
   LessonNotFoundError,
@@ -115,6 +116,12 @@ export interface StartOrResumeLessonInput {
  * fresh "in_progress" record; every call after that just returns the
  * existing one unchanged, so the caller can call this on every lesson
  * open without worrying about resetting progress.
+ *
+ * Prerequisites (assertPrerequisitesMet, prerequisite-use-cases.ts) are
+ * only checked before that first insert - once a lesson has been
+ * started, resuming it always works, even if a prerequisite rule is
+ * added or changed afterward. A lesson with no prerequisites always
+ * passes trivially.
  */
 export async function startOrResumeLesson(
   db: Database,
@@ -129,6 +136,8 @@ export async function startOrResumeLesson(
     ),
   });
   if (existing) return existing as LessonProgressRecord;
+
+  await assertPrerequisitesMet(db, input.enrollmentId, input.lessonId);
 
   const [progress] = await db
     .insert(schema.lessonProgress)

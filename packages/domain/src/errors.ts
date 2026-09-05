@@ -159,3 +159,43 @@ export class BlockTypeMismatchError extends Error {
     this.name = "BlockTypeMismatchError";
   }
 }
+
+export class SelfPrerequisiteError extends Error {
+  constructor(lessonId: string) {
+    super(`Lesson ${lessonId} cannot be its own prerequisite`);
+    this.name = "SelfPrerequisiteError";
+  }
+}
+
+export class PrerequisiteNotInSameVersionError extends Error {
+  constructor(lessonId: string, prerequisiteLessonId: string) {
+    super(
+      `Lesson ${prerequisiteLessonId} is not in the same program version as lesson ${lessonId}`,
+    );
+    this.name = "PrerequisiteNotInSameVersionError";
+  }
+}
+
+export class DuplicatePrerequisiteError extends Error {
+  constructor(lessonId: string, prerequisiteLessonId: string) {
+    super(`Lesson ${prerequisiteLessonId} is already a prerequisite of lesson ${lessonId}`);
+    this.name = "DuplicatePrerequisiteError";
+  }
+}
+
+export class PrerequisiteNotFoundError extends Error {
+  constructor(lessonId: string, prerequisiteLessonId: string) {
+    super(`Lesson ${prerequisiteLessonId} is not a prerequisite of lesson ${lessonId}`);
+    this.name = "PrerequisiteNotFoundError";
+  }
+}
+
+export class PrerequisitesNotMetError extends Error {
+  constructor(
+    lessonId: string,
+    public readonly incompleteLessonIds: string[],
+  ) {
+    super(`Lesson ${lessonId} has unmet prerequisites: ${incompleteLessonIds.join(", ")}`);
+    this.name = "PrerequisitesNotMetError";
+  }
+}
