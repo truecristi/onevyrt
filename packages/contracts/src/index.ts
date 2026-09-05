@@ -12,3 +12,4 @@ export * from "./audit-log";
 export * from "./curriculum";
 export * from "./lesson-blocks";
 export * from "./progress";
+export * from "./notes-bookmarks";
