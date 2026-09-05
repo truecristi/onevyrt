@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runCompletion } from "./gateway";
 import { createDeterministicProvider } from "./providers/deterministic";
+import { resetAiRateLimiterForTests, AiRateLimitExceededError } from "./rate-limit";
 import type { AiProvider, CompletionRequest } from "./types";
 
 const request: CompletionRequest = {
@@ -49,5 +50,35 @@ describe("runCompletion", () => {
 
     await runCompletion(provider, request);
     expect(received).toEqual(request);
+  });
+
+  it("rejects a call over its rate limit before the provider is ever invoked", async () => {
+    resetAiRateLimiterForTests(1, 60_000);
+    let callCount = 0;
+    const provider: AiProvider = {
+      id: "counting",
+      async complete(req) {
+        callCount += 1;
+        return {
+          text: "ok",
+          stopReason: "end_turn",
+          usage: { inputTokens: 1, outputTokens: 1 },
+          model: req.model,
+          providerId: "counting",
+        };
+      },
+    };
+
+    await runCompletion(provider, request, { rateLimitKey: "rate-limit-test-key" });
+    await expect(
+      runCompletion(provider, request, { rateLimitKey: "rate-limit-test-key" }),
+    ).rejects.toThrow(AiRateLimitExceededError);
+    expect(callCount).toBe(1);
+  });
+
+  it("skips the rate-limit check when no rateLimitKey is given", async () => {
+    resetAiRateLimiterForTests(0, 60_000);
+    const provider = createDeterministicProvider();
+    await expect(runCompletion(provider, request)).resolves.toBeDefined();
   });
 });

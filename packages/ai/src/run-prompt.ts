@@ -21,6 +21,8 @@ export interface RunPromptOptions {
   model: string;
   maxTokens?: number;
   temperature?: number;
+  /** Passed straight through to runCompletion's rate-limit check (rate-limit.ts) - typically `ai:${actorUserId}`. Omit only when there's no real actor to key by (internal tooling, tests). */
+  rateLimitKey?: string;
 }
 
 export interface RunPromptResult<TOutput> {
@@ -43,13 +45,17 @@ export async function runPrompt<TOutput>(
 ): Promise<RunPromptResult<TOutput>> {
   const { system, user } = template.render(variables);
 
-  const completion = await runCompletion(provider, {
-    model: options.model,
-    system,
-    messages: [{ role: "user", content: user }],
-    maxTokens: options.maxTokens ?? template.defaultMaxTokens,
-    ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
-  });
+  const completion = await runCompletion(
+    provider,
+    {
+      model: options.model,
+      system,
+      messages: [{ role: "user", content: user }],
+      maxTokens: options.maxTokens ?? template.defaultMaxTokens,
+      ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
+    },
+    { ...(options.rateLimitKey !== undefined ? { rateLimitKey: options.rateLimitKey } : {}) },
+  );
 
   let parsed: unknown;
   try {

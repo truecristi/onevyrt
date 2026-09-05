@@ -9,6 +9,7 @@
 
 export * from "./types";
 export * from "./gateway";
+export * from "./rate-limit";
 export * from "./provider-selection";
 export * from "./providers/anthropic";
 export * from "./providers/deterministic";
