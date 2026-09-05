@@ -32,3 +32,10 @@ export class OfferNotFoundError extends Error {
     this.name = "OfferNotFoundError";
   }
 }
+
+export class TaskNotFoundError extends Error {
+  constructor(taskId: string) {
+    super(`Task ${taskId} not found in this workspace`);
+    this.name = "TaskNotFoundError";
+  }
+}
