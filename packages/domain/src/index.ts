@@ -19,3 +19,5 @@ export * from "./block-response-use-cases";
 export * from "./prerequisite-use-cases";
 export * from "./lesson-application-use-cases";
 export * from "./completion-use-cases";
+export * from "./formula-registry";
+export * from "./formula-use-cases";

@@ -207,6 +207,51 @@ export class LessonApplicationResourceNotFoundError extends Error {
   }
 }
 
+export class DuplicateFormulaVersionError extends Error {
+  constructor(key: string, version: number) {
+    super(`Formula ${key} already has a version ${version}`);
+    this.name = "DuplicateFormulaVersionError";
+  }
+}
+
+export class FormulaDefinitionNotFoundError extends Error {
+  constructor(formulaDefinitionId: string) {
+    super(`Formula definition ${formulaDefinitionId} not found`);
+    this.name = "FormulaDefinitionNotFoundError";
+  }
+}
+
+/** Thrown if metadata is created for a (key, version) that has no matching computation in formula-registry.ts - this table must never describe a formula the system can't actually run. */
+export class FormulaImplementationNotFoundError extends Error {
+  constructor(key: string, version: number) {
+    super(`No formula implementation registered for ${key} version ${version}`);
+    this.name = "FormulaImplementationNotFoundError";
+  }
+}
+
+export class NoPublishedFormulaError extends Error {
+  constructor(key: string) {
+    super(`No published formula definition for key ${key}`);
+    this.name = "NoPublishedFormulaError";
+  }
+}
+
+/** Thrown by computeFormula when the caller's inputs don't exactly match the published definition's inputSchema names - never partially computes on a mismatched input set. */
+export class FormulaInputMismatchError extends Error {
+  constructor(
+    key: string,
+    public readonly missing: string[],
+    public readonly unexpected: string[],
+  ) {
+    super(
+      `Inputs for formula ${key} do not match its definition` +
+        (missing.length > 0 ? `; missing: ${missing.join(", ")}` : "") +
+        (unexpected.length > 0 ? `; unexpected: ${unexpected.join(", ")}` : ""),
+    );
+    this.name = "FormulaInputMismatchError";
+  }
+}
+
 export interface MissingCompletionRequirement {
   lessonBlockId: string;
   blockType: string;
