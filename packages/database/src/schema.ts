@@ -1,4 +1,13 @@
-import { pgTable, uuid, text, timestamp, jsonb, primaryKey, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  jsonb,
+  integer,
+  primaryKey,
+  index,
+} from "drizzle-orm/pg-core";
 
 /**
  * Phase 1 schema: identity + tenancy only (DOM-TENANCY-001, DOM-AUTH-001).
@@ -140,5 +149,37 @@ export const customerProfiles = pgTable(
   },
   (table) => ({
     byWorkspace: index("customer_profiles_workspace_id_idx").on(table.workspaceId),
+  }),
+);
+
+/**
+ * Phase 2 schema (README "Core user and business data" - third slice):
+ * offers. Deliberately small - name, description, price, status - not the
+ * full §6.7 offer/positioning/message system (value proposition, bonuses,
+ * guarantees, risk reversal, objections, versioned messaging), which stays
+ * a later, separate slice.
+ *
+ * §40's financial-assurance rule applies from the first money field: price
+ * is stored as integer minor units (cents), never floating point, with an
+ * explicit currency code alongside it - "10.99" as a float can't represent
+ * every currency amount exactly, integer cents can.
+ */
+export const offers = pgTable(
+  "offers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    priceCents: integer("price_cents"),
+    currency: text("currency").notNull().default("usd"),
+    status: text("status").notNull().default("draft"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("offers_workspace_id_idx").on(table.workspaceId),
   }),
 );

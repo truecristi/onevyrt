@@ -19,7 +19,7 @@ describe("runMigrations", () => {
     // whenever a new migration adds a table - see the table-name assertion
     // below, which needs the same update.
     await client.query(`
-      DROP TABLE IF EXISTS customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
+      DROP TABLE IF EXISTS offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
     `);
   });
 
@@ -33,6 +33,7 @@ describe("runMigrations", () => {
       "0000_init.sql",
       "0001_business_core.sql",
       "0002_customer_profiles.sql",
+      "0003_offers.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
@@ -45,6 +46,7 @@ describe("runMigrations", () => {
       "business_profiles",
       "customer_profiles",
       "goals",
+      "offers",
       "sessions",
       "users",
       "workspace_members",
