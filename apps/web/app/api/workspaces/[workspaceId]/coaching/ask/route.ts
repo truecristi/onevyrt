@@ -7,6 +7,7 @@ import {
   runPrompt,
   selectDefaultProvider,
   AiProviderError,
+  AiRateLimitExceededError,
   PromptOutputValidationError,
   DEFAULT_ANTHROPIC_MODEL,
   type CoachingAskOutput,
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       provider,
       template,
       { context: context.text, question: parsed.data.question },
-      { model: DEFAULT_ANTHROPIC_MODEL },
+      { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
 
     logger.info("coaching question answered", {
@@ -86,6 +87,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     if (error instanceof WorkspaceAccessDeniedError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+    if (error instanceof AiRateLimitExceededError) {
+      return NextResponse.json(
+        { error: "Too many AI requests. Try again later." },
+        {
+          status: 429,
+        },
+      );
     }
     if (error instanceof PromptOutputValidationError || error instanceof AiProviderError) {
       logger.error("coaching question failed upstream", {

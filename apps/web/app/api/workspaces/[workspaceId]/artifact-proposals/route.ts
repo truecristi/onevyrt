@@ -13,6 +13,7 @@ import {
   runPrompt,
   selectDefaultProvider,
   AiProviderError,
+  AiRateLimitExceededError,
   PromptOutputValidationError,
   DEFAULT_ANTHROPIC_MODEL,
   type ProposeArtifactPatchOutput,
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         currentState: JSON.stringify(currentState),
         instruction: parsed.data.instruction,
       },
-      { model: DEFAULT_ANTHROPIC_MODEL },
+      { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
 
     const proposal = await createArtifactProposal(db, {
@@ -140,6 +141,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       // caller's request body - still a 422, not a 500, since retrying
       // the same instruction may well succeed.
       return NextResponse.json({ error: error.message }, { status: 422 });
+    }
+    if (error instanceof AiRateLimitExceededError) {
+      return NextResponse.json(
+        { error: "Too many AI requests. Try again later." },
+        {
+          status: 429,
+        },
+      );
     }
     if (error instanceof PromptOutputValidationError || error instanceof AiProviderError) {
       logger.error("artifact proposal failed upstream", { correlationId, error: error.message });

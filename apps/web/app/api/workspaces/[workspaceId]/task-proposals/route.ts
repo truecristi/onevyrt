@@ -12,6 +12,7 @@ import {
   runPrompt,
   selectDefaultProvider,
   AiProviderError,
+  AiRateLimitExceededError,
   PromptOutputValidationError,
   DEFAULT_ANTHROPIC_MODEL,
   type ProposeTaskOutput,
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       provider,
       template,
       { context: context.text, instruction: parsed.data.instruction },
-      { model: DEFAULT_ANTHROPIC_MODEL },
+      { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
 
     const proposal = await createTaskProposal(db, {
@@ -124,6 +125,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
     if (error instanceof InvalidTaskProposalError) {
       return NextResponse.json({ error: error.message }, { status: 422 });
+    }
+    if (error instanceof AiRateLimitExceededError) {
+      return NextResponse.json(
+        { error: "Too many AI requests. Try again later." },
+        {
+          status: 429,
+        },
+      );
     }
     if (error instanceof PromptOutputValidationError || error instanceof AiProviderError) {
       logger.error("task proposal failed upstream", { correlationId, error: error.message });

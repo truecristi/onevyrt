@@ -10,6 +10,7 @@ import {
   runPrompt,
   selectDefaultProvider,
   AiProviderError,
+  AiRateLimitExceededError,
   PromptOutputValidationError,
   DEFAULT_ANTHROPIC_MODEL,
   type ExplainCalculationOutput,
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         blockType: context.blockType,
         content: context.content,
       },
-      { model: DEFAULT_ANTHROPIC_MODEL },
+      { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
 
     logger.info("lesson block explained", {
@@ -86,6 +87,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       error instanceof LessonBlockNotFoundError
     ) {
       return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof AiRateLimitExceededError) {
+      return NextResponse.json(
+        { error: "Too many AI requests. Try again later." },
+        {
+          status: 429,
+        },
+      );
     }
     if (error instanceof PromptOutputValidationError || error instanceof AiProviderError) {
       logger.error("lesson block explanation failed upstream", {
