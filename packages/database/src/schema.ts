@@ -13,6 +13,7 @@ import {
   uniqueIndex,
   unique,
   check,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -245,17 +246,57 @@ export const offers = pgTable(
 );
 
 /**
+ * PRD-BUILD-005 (Phase 5 fifth slice: task and project system, spec's
+ * "Execution system" section - "projects; milestones; tasks; next
+ * actions; priorities; due dates; dependencies; blockers; ..."). A
+ * project is just a named grouping a task can optionally belong to -
+ * milestones/checklists/experiments/review-cycles from that same list
+ * stay later, separate slices.
+ */
+export const projects = pgTable(
+  "projects",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("projects_workspace_id_idx").on(table.workspaceId),
+    statusCheck: check(
+      "projects_status_check",
+      sql`${table.status} IN ('active', 'completed', 'archived')`,
+    ),
+  }),
+);
+
+/**
  * Phase 2 schema (README "Core user and business data" - fourth slice):
- * tasks. Deliberately small - not the full §6.18 execution system
- * (projects, milestones, dependencies, blockers, checklists tied to
- * lessons/decisions), which stays a later, separate slice once Execute has
- * more than one kind of thing to attach a task to.
+ * tasks, extended by PRD-BUILD-005 (Phase 5 fifth slice: task and
+ * project system) with projectId/priority/blockedByTaskId. Originally
+ * deliberately small - not the full §6.18 execution system (projects,
+ * milestones, dependencies, blockers, checklists tied to lessons/
+ * decisions) - milestones/checklists/experiments/review-cycles from
+ * that list still stay later, separate slices.
  *
  * completedAt is a real derived field, not just another status value: it
  * records *when* a task was actually finished, separately from status
  * potentially changing again later (§37's domain-invariant spirit - a
  * fact that happened shouldn't be reconstructible only by guessing from
  * updatedAt).
+ *
+ * blockedByTaskId is a single self-reference, not a full dependency
+ * graph - "this task is blocked by that task" is the concrete case spec
+ * asks for; a many-to-many dependency DAG with cycle detection is a
+ * larger feature this slice doesn't attempt. SET NULL on delete so
+ * removing the blocking task doesn't cascade into deleting the blocked
+ * one, and a CHECK constraint (mirroring lesson_prerequisites') rules
+ * out a task blocking itself.
  */
 export const tasks = pgTable(
   "tasks",
@@ -271,9 +312,20 @@ export const tasks = pgTable(
     completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
+    priority: text("priority").notNull().default("medium"),
+    blockedByTaskId: uuid("blocked_by_task_id").references((): AnyPgColumn => tasks.id, {
+      onDelete: "set null",
+    }),
   },
   (table) => ({
     byWorkspace: index("tasks_workspace_id_idx").on(table.workspaceId),
+    byProject: index("tasks_project_id_idx").on(table.projectId),
+    priorityCheck: check(
+      "tasks_priority_check",
+      sql`${table.priority} IN ('low', 'medium', 'high', 'urgent')`,
+    ),
+    noSelfBlock: check("tasks_no_self_block", sql`${table.blockedByTaskId} != ${table.id}`),
   }),
 );
 
