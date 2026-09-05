@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateAssumptionRequestSchema } from "@onevyrt/contracts";
-import { updateAssumption, AssumptionNotFoundError } from "@onevyrt/domain";
+import {
+  updateAssumption,
+  AssumptionNotFoundError,
+  AssumptionOwnerNotInWorkspaceError,
+} from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import { logger, newCorrelationId } from "@onevyrt/observability";
 import { getServerContext } from "@/lib/server";
@@ -60,6 +64,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
     if (error instanceof AssumptionNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof AssumptionOwnerNotInWorkspaceError) {
+      return NextResponse.json({ error: error.message }, { status: 422 });
     }
     logger.error("assumption update failed", {
       correlationId,

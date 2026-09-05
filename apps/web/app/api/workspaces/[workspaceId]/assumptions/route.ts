@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAssumptionRequestSchema } from "@onevyrt/contracts";
-import { createAssumption, listAssumptions } from "@onevyrt/domain";
+import {
+  createAssumption,
+  listAssumptions,
+  AssumptionOwnerNotInWorkspaceError,
+} from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import { logger, newCorrelationId } from "@onevyrt/observability";
 import { getServerContext } from "@/lib/server";
@@ -64,7 +68,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       source: parsed.data.source,
       confidence: parsed.data.confidence,
       unit: parsed.data.unit,
+      sourceType: parsed.data.sourceType,
       ...(parsed.data.value !== undefined ? { value: parsed.data.value } : {}),
+      ...(parsed.data.sourceDate !== undefined ? { sourceDate: parsed.data.sourceDate } : {}),
+      ...(parsed.data.ownerId !== undefined ? { ownerId: parsed.data.ownerId } : {}),
+      ...(parsed.data.formulaTraceKey !== undefined
+        ? { formulaTraceKey: parsed.data.formulaTraceKey }
+        : {}),
+      ...(parsed.data.formulaTraceVersion !== undefined
+        ? { formulaTraceVersion: parsed.data.formulaTraceVersion }
+        : {}),
     });
     logger.info("assumption created", {
       correlationId,
@@ -76,6 +89,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     if (error instanceof WorkspaceAccessDeniedError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+    if (error instanceof AssumptionOwnerNotInWorkspaceError) {
+      return NextResponse.json({ error: error.message }, { status: 422 });
     }
     logger.error("assumption creation failed", {
       correlationId,
