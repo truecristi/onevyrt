@@ -3,8 +3,9 @@ import { Client } from "pg";
 import { createDatabase, runMigrations, type Database } from "@onevyrt/database";
 import { getTestDatabaseUrl, truncateTables } from "@onevyrt/testing";
 import { registerUser } from "./auth-use-cases";
-import { createTask, listTasks, updateTaskStatus } from "./task-use-cases";
-import { TaskNotFoundError } from "./errors";
+import { createTask, listTasks, updateTask, updateTaskStatus } from "./task-use-cases";
+import { createProject } from "./project-use-cases";
+import { ProjectNotFoundError, TaskBlockerInvalidError, TaskNotFoundError } from "./errors";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import type { Pool } from "pg";
 
@@ -33,6 +34,7 @@ describe("tasks (Phase 2 fourth slice)", () => {
   beforeEach(async () => {
     await truncateTables(cleanupClient, [
       "tasks",
+      "projects",
       "offers",
       "customer_profiles",
       "goals",
@@ -61,6 +63,7 @@ describe("tasks (Phase 2 fourth slice)", () => {
       actorUserId: alice.user.id,
       title: "Write the plan",
       description: "",
+      priority: "medium",
     });
     expect(first.status).toBe("open");
     expect(first.completedAt).toBeNull();
@@ -70,6 +73,7 @@ describe("tasks (Phase 2 fourth slice)", () => {
       actorUserId: alice.user.id,
       title: "Ship it",
       description: "",
+      priority: "medium",
     });
 
     const tasks = await listTasks(db, {
@@ -86,6 +90,7 @@ describe("tasks (Phase 2 fourth slice)", () => {
       actorUserId: alice.user.id,
       title: "Ship it",
       description: "",
+      priority: "medium",
     });
 
     const done = await updateTaskStatus(db, {
@@ -106,6 +111,7 @@ describe("tasks (Phase 2 fourth slice)", () => {
       actorUserId: alice.user.id,
       title: "Ship it",
       description: "",
+      priority: "medium",
     });
 
     await updateTaskStatus(db, {
@@ -147,6 +153,7 @@ describe("tasks (Phase 2 fourth slice)", () => {
       actorUserId: alice.user.id,
       title: "Alice's task",
       description: "",
+      priority: "medium",
     });
 
     await expect(
@@ -159,6 +166,7 @@ describe("tasks (Phase 2 fourth slice)", () => {
         actorUserId: bob.user.id,
         title: "Should fail",
         description: "",
+        priority: "medium",
       }),
     ).rejects.toThrow(WorkspaceAccessDeniedError);
 
@@ -170,5 +178,109 @@ describe("tasks (Phase 2 fourth slice)", () => {
         status: "done",
       }),
     ).rejects.toThrow(WorkspaceAccessDeniedError);
+  });
+
+  it("creates a task linked to a project, and updates its project/priority/blocker via updateTask", async () => {
+    const alice = await registerWithWorkspace("alice6@example.com", "Alice Co 6");
+    const project = await createProject(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      name: "Launch",
+      description: "",
+    });
+    const blocker = await createTask(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      title: "Prerequisite task",
+      description: "",
+      priority: "medium",
+    });
+
+    const task = await createTask(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      title: "Ship it",
+      description: "",
+      projectId: project.id,
+      priority: "high",
+      blockedByTaskId: blocker.id,
+    });
+    expect(task.projectId).toBe(project.id);
+    expect(task.priority).toBe("high");
+    expect(task.blockedByTaskId).toBe(blocker.id);
+
+    const updated = await updateTask(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      taskId: task.id,
+      projectId: null,
+      priority: "urgent",
+      blockedByTaskId: null,
+    });
+    expect(updated.projectId).toBeNull();
+    expect(updated.priority).toBe("urgent");
+    expect(updated.blockedByTaskId).toBeNull();
+  });
+
+  it("rejects a projectId that doesn't belong to the workspace", async () => {
+    const alice = await registerWithWorkspace("alice7@example.com", "Alice Co 7");
+    const bob = await registerWithWorkspace("bob7@example.com", "Bob Co 7");
+    const bobsProject = await createProject(db, {
+      workspaceId: bob.workspace.id,
+      actorUserId: bob.user.id,
+      name: "Bob's project",
+      description: "",
+    });
+
+    await expect(
+      createTask(db, {
+        workspaceId: alice.workspace.id,
+        actorUserId: alice.user.id,
+        title: "Should fail",
+        description: "",
+        priority: "medium",
+        projectId: bobsProject.id,
+      }),
+    ).rejects.toThrow(ProjectNotFoundError);
+  });
+
+  it("rejects a blockedByTaskId that is the task itself, or belongs to another workspace", async () => {
+    const alice = await registerWithWorkspace("alice8@example.com", "Alice Co 8");
+    const bob = await registerWithWorkspace("bob8@example.com", "Bob Co 8");
+    const bobsTask = await createTask(db, {
+      workspaceId: bob.workspace.id,
+      actorUserId: bob.user.id,
+      title: "Bob's task",
+      description: "",
+      priority: "medium",
+    });
+
+    await expect(
+      createTask(db, {
+        workspaceId: alice.workspace.id,
+        actorUserId: alice.user.id,
+        title: "Should fail",
+        description: "",
+        priority: "medium",
+        blockedByTaskId: bobsTask.id,
+      }),
+    ).rejects.toThrow(TaskBlockerInvalidError);
+
+    const task = await createTask(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      title: "Ship it",
+      description: "",
+      priority: "medium",
+    });
+
+    await expect(
+      updateTask(db, {
+        workspaceId: alice.workspace.id,
+        actorUserId: alice.user.id,
+        taskId: task.id,
+        blockedByTaskId: task.id,
+      }),
+    ).rejects.toThrow(TaskBlockerInvalidError);
   });
 });

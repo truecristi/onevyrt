@@ -65,6 +65,7 @@ describe("audit log (Phase 2 tenth slice)", () => {
       actorUserId: alice.user.id,
       title: "Write the plan",
       description: "",
+      priority: "medium",
     });
 
     const entries = await listAuditLog(db, {
@@ -89,6 +90,7 @@ describe("audit log (Phase 2 tenth slice)", () => {
         actorUserId: alice.user.id,
         title: `Task ${i}`,
         description: "",
+        priority: "medium",
       });
     }
 

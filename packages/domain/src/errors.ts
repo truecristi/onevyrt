@@ -377,3 +377,18 @@ export class ArtifactVersionNotFoundError extends Error {
     this.name = "ArtifactVersionNotFoundError";
   }
 }
+
+export class ProjectNotFoundError extends Error {
+  constructor(projectId: string) {
+    super(`Project ${projectId} not found in this workspace`);
+    this.name = "ProjectNotFoundError";
+  }
+}
+
+/** Thrown when a task's blockedByTaskId is set to a task from a different workspace, or to itself - see task-use-cases.ts's assertBlockerInWorkspace. */
+export class TaskBlockerInvalidError extends Error {
+  constructor(taskId: string, blockedByTaskId: string) {
+    super(`Task ${blockedByTaskId} cannot block task ${taskId} in this workspace`);
+    this.name = "TaskBlockerInvalidError";
+  }
+}
