@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   uuid,
@@ -6,8 +7,11 @@ import {
   jsonb,
   integer,
   doublePrecision,
+  boolean,
   primaryKey,
   index,
+  uniqueIndex,
+  unique,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -21,6 +25,14 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  // Added in the Phase 3 curriculum slice (PRD-CURRICULUM-001): curriculum
+  // authoring is platform-wide, not workspace-scoped, so it needs an
+  // authorization concept above workspace membership. No product surface
+  // sets this yet - it has to be set directly in the database until an
+  // admin console exists. Re-derived fresh from the DB on every check
+  // (requirePlatformAdmin, curriculum-use-cases.ts), same as workspace
+  // membership - never trust a cached/client-supplied value for it.
+  isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -366,5 +378,94 @@ export const evidence = pgTable(
     byWorkspace: index("evidence_workspace_id_idx").on(table.workspaceId),
     byAssumption: index("evidence_assumption_id_idx").on(table.assumptionId),
     byDecision: index("evidence_decision_id_idx").on(table.decisionId),
+  }),
+);
+
+/**
+ * PRD-CURRICULUM-001 vertical slice: programs, program versions and
+ * lessons - the first Phase 3 slice (README "Learning system"). Unlike
+ * every Phase 2 table, this content is platform-wide, not
+ * workspace-scoped: it's authored once (by a platform admin, see
+ * users.isPlatformAdmin) and read by every workspace, matching the
+ * spec's ProgrammeVersion -> LessonVersion model (section 21). Lesson
+ * *blocks* (the typed content inside a lesson - concept, worked-example,
+ * knowledge-check, etc., section 21) are deliberately a separate, later
+ * slice; this one only establishes the catalog and versioning/publishing
+ * shape they'll attach to.
+ */
+export const programs = pgTable("programs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull().default(""),
+  orderIndex: integer("order_index").notNull().default(0),
+  status: text("status").notNull().default("draft"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * "Publishing freezes a version for enrolled learners; edits create a new
+ * version" (spec section 6.20). At most one published version per program
+ * is enforced by a partial unique index, not application code alone -
+ * publishProgramVersion (curriculum-use-cases.ts) atomically archives any
+ * previously-published version in the same transaction before publishing
+ * the new one, so the index should never actually reject a legitimate
+ * publish; it exists as a backstop against a bug doing it wrong.
+ */
+export const programVersions = pgTable(
+  "program_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    programId: uuid("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    status: text("status").notNull().default("draft"),
+    outcomes: text("outcomes").notNull().default(""),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byProgram: index("program_versions_program_id_idx").on(table.programId),
+    uniqueVersionPerProgram: unique("program_versions_program_id_version_key").on(
+      table.programId,
+      table.version,
+    ),
+    onePublishedPerProgram: uniqueIndex("program_versions_one_published_per_program_idx")
+      .on(table.programId)
+      .where(sql`${table.status} = 'published'`),
+  }),
+);
+
+/**
+ * Lessons can only be created or edited while their parent program
+ * version is still "draft" (enforced in curriculum-use-cases.ts, not the
+ * database) - once a version is published it's frozen for enrolled
+ * learners, per the same rule as programVersions above.
+ */
+export const lessons = pgTable(
+  "lessons",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    programVersionId: uuid("program_version_id")
+      .notNull()
+      .references(() => programVersions.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    outcome: text("outcome").notNull().default(""),
+    orderIndex: integer("order_index").notNull().default(0),
+    estimatedMinutes: integer("estimated_minutes"),
+    status: text("status").notNull().default("draft"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byProgramVersion: index("lessons_program_version_id_idx").on(table.programVersionId),
+    uniqueSlugPerVersion: unique("lessons_program_version_id_slug_key").on(
+      table.programVersionId,
+      table.slug,
+    ),
   }),
 );
