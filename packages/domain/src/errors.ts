@@ -18,3 +18,10 @@ export class GoalNotFoundError extends Error {
     this.name = "GoalNotFoundError";
   }
 }
+
+export class CustomerProfileNotFoundError extends Error {
+  constructor(customerProfileId: string) {
+    super(`Customer profile ${customerProfileId} not found in this workspace`);
+    this.name = "CustomerProfileNotFoundError";
+  }
+}
