@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
-import type { WorkspaceMembership } from "@onevyrt/auth";
+import { assertCanReadWorkspace, type WorkspaceMembership } from "@onevyrt/auth";
 
 export interface CreateWorkspaceInput {
   ownerUserId: string;
@@ -81,4 +81,24 @@ export async function getMembership(
   });
   if (!row) return null;
   return { workspaceId: row.workspaceId, userId: row.userId, role: row.role as "owner" | "member" };
+}
+
+/**
+ * The single chokepoint every business-core use case (business profiles,
+ * goals, customer profiles, offers, and whatever comes after them) calls
+ * before reading or writing workspace-scoped data. Looks up membership and
+ * fails closed via assertCanReadWorkspace in one step, instead of each
+ * call site re-implementing "getMembership then assertCanReadWorkspace"
+ * (a review of PRs #2-#4 found this duplicated nine times) - a future
+ * authorization change (e.g. requiring canManageWorkspace for a
+ * destructive action) now only needs to change here.
+ */
+export async function requireWorkspaceMembership(
+  db: Database,
+  workspaceId: string,
+  userId: string,
+): Promise<WorkspaceMembership> {
+  const membership = await getMembership(db, workspaceId, userId);
+  assertCanReadWorkspace(membership, workspaceId);
+  return membership;
 }
