@@ -629,3 +629,44 @@ export const notes = pgTable(
     byUserAndLesson: index("notes_user_id_lesson_id_idx").on(table.userId, table.lessonId),
   }),
 );
+
+/**
+ * PRD-CURRICULUM-005 vertical slice: the learner's own responses to
+ * "knowledge-check" and "reflection" blocks (README "Knowledge checks"
+ * and "Reflection"). Scoped to an enrollment, not a bare userId - a
+ * response only makes sense in the context of a specific attempt at the
+ * program version that block belongs to, same reasoning as
+ * lesson_progress. One response per (enrollment, block): resubmitting
+ * overwrites rather than creating a history of attempts - this is
+ * intentionally "your current answer", not a full attempt log.
+ *
+ * `response` is jsonb because its shape depends on block_type, same
+ * reasoning as lesson_blocks.payload - enforced by a Zod discriminated
+ * union at the API boundary (packages/contracts/src/block-responses.ts),
+ * restricted for now to the two block types that actually need a
+ * captured response. block_type is denormalized from the referenced
+ * block so a response can be validated/queried without an extra join.
+ */
+export const blockResponses = pgTable(
+  "block_responses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    enrollmentId: uuid("enrollment_id")
+      .notNull()
+      .references(() => enrollments.id, { onDelete: "cascade" }),
+    lessonBlockId: uuid("lesson_block_id")
+      .notNull()
+      .references(() => lessonBlocks.id, { onDelete: "cascade" }),
+    blockType: text("block_type").notNull(),
+    response: jsonb("response").notNull(),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byEnrollment: index("block_responses_enrollment_id_idx").on(table.enrollmentId),
+    uniquePerEnrollmentAndBlock: unique("block_responses_enrollment_id_lesson_block_id_key").on(
+      table.enrollmentId,
+      table.lessonBlockId,
+    ),
+  }),
+);
