@@ -5,3 +5,4 @@ export * from "./business-core-use-cases";
 export * from "./customer-profile-use-cases";
 export * from "./offer-use-cases";
 export * from "./task-use-cases";
+export * from "./business-metric-use-cases";

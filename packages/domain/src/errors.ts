@@ -39,3 +39,10 @@ export class TaskNotFoundError extends Error {
     this.name = "TaskNotFoundError";
   }
 }
+
+export class BusinessMetricNotFoundError extends Error {
+  constructor(metricId: string) {
+    super(`Business metric ${metricId} not found in this workspace`);
+    this.name = "BusinessMetricNotFoundError";
+  }
+}
