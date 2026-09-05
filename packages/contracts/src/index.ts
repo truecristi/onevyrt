@@ -5,3 +5,4 @@ export * from "./customer-profiles";
 export * from "./offers";
 export * from "./tasks";
 export * from "./business-metrics";
+export * from "./assumptions";
