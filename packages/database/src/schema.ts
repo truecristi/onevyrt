@@ -12,6 +12,7 @@ import {
   index,
   uniqueIndex,
   unique,
+  check,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -667,6 +668,42 @@ export const blockResponses = pgTable(
     uniquePerEnrollmentAndBlock: unique("block_responses_enrollment_id_lesson_block_id_key").on(
       table.enrollmentId,
       table.lessonBlockId,
+    ),
+  }),
+);
+
+/**
+ * PRD-CURRICULUM-006 vertical slice: prerequisites (README "Prerequisites").
+ * A lesson may require one or more other lessons to be completed first.
+ * Both sides are always lessons *in the same program version* -
+ * enforced in prerequisite-use-cases.ts, not the database, the same
+ * tradeoff every other cross-entity link in this schema makes (see
+ * evidence's doc comment). ON DELETE CASCADE on both columns: a lesson
+ * being removed (never actually implemented anywhere in this codebase
+ * yet, but the FK exists for schema completeness) takes its prerequisite
+ * links with it either way it participates.
+ */
+export const lessonPrerequisites = pgTable(
+  "lesson_prerequisites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    prerequisiteLessonId: uuid("prerequisite_lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byLesson: index("lesson_prerequisites_lesson_id_idx").on(table.lessonId),
+    uniquePerPair: unique("lesson_prerequisites_lesson_id_prerequisite_lesson_id_key").on(
+      table.lessonId,
+      table.prerequisiteLessonId,
+    ),
+    noSelfReference: check(
+      "lesson_prerequisites_no_self_reference",
+      sql`${table.lessonId} != ${table.prerequisiteLessonId}`,
     ),
   }),
 );
