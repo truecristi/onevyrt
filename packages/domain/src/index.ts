@@ -37,3 +37,4 @@ export * from "./task-proposal-use-cases";
 export * from "./ai-call-record-use-cases";
 export * from "./scorecard-use-cases";
 export * from "./weekly-review-use-cases";
+export * from "./experiment-analysis-use-cases";
