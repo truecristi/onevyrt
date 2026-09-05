@@ -383,3 +383,32 @@ export async function updateLesson(db: Database, input: UpdateLessonInput): Prom
   if (!updated) throw new LessonNotFoundError(input.lessonId);
   return updated as LessonRecord;
 }
+
+/**
+ * Exported for notes-bookmarks-use-cases.ts (and any future learner-
+ * facing feature that references a lesson): returns the lesson if it's
+ * visible to the caller - a platform admin sees any status, everyone
+ * else only a lesson that is itself "published" in a "published"
+ * program version - the same rule listLessons/listLessonBlocks apply.
+ * Throws LessonNotFoundError otherwise, not leaking which draft lesson
+ * IDs exist.
+ */
+export async function assertLessonVisible(
+  db: Database,
+  lessonId: string,
+  actorUserId: string,
+): Promise<LessonRecord> {
+  const lesson = await db.query.lessons.findFirst({ where: eq(schema.lessons.id, lessonId) });
+  if (!lesson) throw new LessonNotFoundError(lessonId);
+
+  const isAdmin = await checkPlatformAdmin(db, actorUserId);
+  if (isAdmin) return lesson as LessonRecord;
+
+  const version = await db.query.programVersions.findFirst({
+    where: eq(schema.programVersions.id, lesson.programVersionId),
+  });
+  if (lesson.status !== "published" || version?.status !== "published") {
+    throw new LessonNotFoundError(lessonId);
+  }
+  return lesson as LessonRecord;
+}

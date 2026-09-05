@@ -145,3 +145,10 @@ export class LessonProgressNotFoundError extends Error {
     this.name = "LessonProgressNotFoundError";
   }
 }
+
+export class NoteNotFoundError extends Error {
+  constructor(noteId: string) {
+    super(`Note ${noteId} not found`);
+    this.name = "NoteNotFoundError";
+  }
+}
