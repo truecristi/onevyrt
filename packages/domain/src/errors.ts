@@ -252,6 +252,28 @@ export class FormulaInputMismatchError extends Error {
   }
 }
 
+export class ScenarioNotFoundError extends Error {
+  constructor(scenarioId: string) {
+    super(`Scenario ${scenarioId} not found in this workspace`);
+    this.name = "ScenarioNotFoundError";
+  }
+}
+
+/** At most one "base"/"best"/"worst" scenario may exist per workspace (schema.ts's partial unique index backs this up) - "custom" scenarios have no such limit. */
+export class DuplicateScenarioTypeError extends Error {
+  constructor(workspaceId: string, scenarioType: string) {
+    super(`Workspace ${workspaceId} already has a "${scenarioType}" scenario`);
+    this.name = "DuplicateScenarioTypeError";
+  }
+}
+
+export class ScenarioOverrideNotFoundError extends Error {
+  constructor(scenarioId: string, assumptionId: string) {
+    super(`Scenario ${scenarioId} has no override for assumption ${assumptionId}`);
+    this.name = "ScenarioOverrideNotFoundError";
+  }
+}
+
 export interface MissingCompletionRequirement {
   lessonBlockId: string;
   blockType: string;
