@@ -9,3 +9,4 @@ export * from "./assumptions";
 export * from "./decisions";
 export * from "./evidence";
 export * from "./audit-log";
+export * from "./curriculum";
