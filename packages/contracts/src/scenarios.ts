@@ -48,3 +48,32 @@ export const resolvedScenarioAssumptionSchema = z.object({
   isOverridden: z.boolean(),
 });
 export type ResolvedScenarioAssumption = z.infer<typeof resolvedScenarioAssumptionSchema>;
+
+/**
+ * PRD-NUMBERS-007 (Phase 4 seventh slice: comparison tools, spec's
+ * "Compare: compare scenarios, options, drafts or actual-versus-plan").
+ * Same resolution as resolvedScenarioAssumptionSchema but across
+ * several scenarios at once, one row per assumption with one value per
+ * requested scenario - what a side-by-side comparison table needs in a
+ * single response.
+ */
+export const compareScenariosRequestSchema = z.object({
+  scenarioIds: z.array(z.string().uuid()).min(2).max(10),
+});
+export type CompareScenariosRequest = z.infer<typeof compareScenariosRequestSchema>;
+
+export const scenarioComparisonRowSchema = z.object({
+  assumptionId: z.string().uuid(),
+  statement: z.string(),
+  unit: z.string(),
+  baselineValue: z.number().nullable(),
+  /** Keyed by scenarioId - the override value if that scenario has one, otherwise the same as baselineValue. */
+  valuesByScenarioId: z.record(z.string(), z.number().nullable()),
+});
+export type ScenarioComparisonRow = z.infer<typeof scenarioComparisonRowSchema>;
+
+export const scenarioComparisonSchema = z.object({
+  scenarios: z.array(scenarioSchema.pick({ id: true, name: true, scenarioType: true })),
+  rows: z.array(scenarioComparisonRowSchema),
+});
+export type ScenarioComparison = z.infer<typeof scenarioComparisonSchema>;
