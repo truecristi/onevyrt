@@ -41,14 +41,23 @@ and redaction."
 
 ### Retention (still proposed)
 
-Not decided yet: this slice assembles context and returns a manifest to
-its caller, but nothing persists a request/response envelope anywhere -
-that starts with the "Cost and latency tracking" Phase 6 slice, which is
-the first place an AI call actually gets a durable row. Retention policy
-(how long that row lives, who can read it, whether/how it's included in
-data export or deletion) is deferred to that slice, which will either
-accept this half of the ADR or split it into its own follow-up ADR if the
-retention question turns out to need one.
+The "Cost and latency tracking" Phase 6 slice (`ai_call_records`,
+`ai-call-record-use-cases.ts`) is now the first place an AI call gets a
+durable row - but that row is metadata only (actor, workspace,
+provider/model, token counts, latency, an estimated cost), never the
+actual prompt/response text. So the concrete question this ADR's
+"retention" half asks - how long a request/response *envelope* persists,
+who can read it, how it's exported/deleted - is still not decided,
+because nothing in this codebase stores that envelope at all yet. Once
+something does (e.g. a future audit/debugging need to see what a model
+actually said), that slice inherits this open question rather than
+re-deciding context assembly's already-settled half.
+
+`ai_call_records` itself currently has no retention/deletion policy
+either (rows accumulate indefinitely) - a smaller, separate gap from the
+envelope question above, and one worth a real decision before this table
+grows large in a real deployment, but not blocking anything this ADR
+covers.
 
 ## Consequences
 
