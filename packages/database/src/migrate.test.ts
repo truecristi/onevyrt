@@ -57,6 +57,7 @@ describe("runMigrations", () => {
       "0024_artifact_versions.sql",
       "0025_task_project_system.sql",
       "0026_experiments.sql",
+      "0027_evidence_experiment_link.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`

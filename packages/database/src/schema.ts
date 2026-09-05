@@ -484,11 +484,23 @@ export const evidence = pgTable(
     collectedAt: timestamp("collected_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    // PRD-BUILD-007 (Phase 5 seventh slice: evidence collection, README
+    // "Build and execution" -> "Evidence collection" - the Phase-5-scale
+    // version of this Phase 2 slice, spec section 6.19: "an experiment
+    // connects a lesson hypothesis to an action, measurement and review
+    // decision"). Additive, nullable, set null on delete - no behavior
+    // change for evidence created before this slice; an evidence record
+    // can be linked to an assumption, a decision, an experiment, any
+    // combination, or none.
+    experimentId: uuid("experiment_id").references((): AnyPgColumn => experiments.id, {
+      onDelete: "set null",
+    }),
   },
   (table) => ({
     byWorkspace: index("evidence_workspace_id_idx").on(table.workspaceId),
     byAssumption: index("evidence_assumption_id_idx").on(table.assumptionId),
     byDecision: index("evidence_decision_id_idx").on(table.decisionId),
+    byExperiment: index("evidence_experiment_id_idx").on(table.experimentId),
   }),
 );
 
