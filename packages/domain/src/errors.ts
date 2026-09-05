@@ -409,3 +409,10 @@ export class ExperimentOwnerNotInWorkspaceError extends Error {
     this.name = "ExperimentOwnerNotInWorkspaceError";
   }
 }
+
+export class LaunchNotFoundError extends Error {
+  constructor(launchId: string) {
+    super(`Launch ${launchId} not found in this workspace`);
+    this.name = "LaunchNotFoundError";
+  }
+}
