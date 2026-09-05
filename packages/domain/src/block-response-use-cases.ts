@@ -27,8 +27,8 @@ export interface BlockResponseRecord {
   updatedAt: Date;
 }
 
-/** Verifies ownership and returns the block's own row (its payload is needed by submitBlockResponse to grade a knowledge-check). */
-async function requireOwnEnrollmentForBlock(
+/** Verifies ownership and returns the block's own row (its payload is needed by submitBlockResponse to grade a knowledge-check). Exported for lesson-application-use-cases.ts, which needs the same block-scoped ownership check. */
+export async function requireOwnEnrollmentForBlock(
   db: Database,
   enrollmentId: string,
   lessonBlockId: string,

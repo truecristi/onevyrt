@@ -17,3 +17,4 @@ export * from "./progress-use-cases";
 export * from "./notes-bookmarks-use-cases";
 export * from "./block-response-use-cases";
 export * from "./prerequisite-use-cases";
+export * from "./lesson-application-use-cases";

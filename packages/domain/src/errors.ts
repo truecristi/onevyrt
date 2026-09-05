@@ -199,3 +199,10 @@ export class PrerequisitesNotMetError extends Error {
     this.name = "PrerequisitesNotMetError";
   }
 }
+
+export class LessonApplicationResourceNotFoundError extends Error {
+  constructor(resourceType: string, resourceId: string, workspaceId: string) {
+    super(`No ${resourceType} ${resourceId} found in workspace ${workspaceId}`);
+    this.name = "LessonApplicationResourceNotFoundError";
+  }
+}
