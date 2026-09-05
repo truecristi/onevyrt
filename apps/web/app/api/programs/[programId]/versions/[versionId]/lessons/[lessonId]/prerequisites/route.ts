@@ -1,25 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateLessonProgressRequestSchema } from "@onevyrt/contracts";
+import { addPrerequisiteRequestSchema } from "@onevyrt/contracts";
 import {
-  startOrResumeLesson,
-  updateLessonProgress,
-  EnrollmentNotFoundError,
+  addPrerequisite,
+  listPrerequisitesForLesson,
   LessonNotFoundError,
-  LessonBlockNotFoundError,
-  LessonProgressNotFoundError,
-  PrerequisitesNotMetError,
+  SelfPrerequisiteError,
+  PrerequisiteNotInSameVersionError,
+  DuplicatePrerequisiteError,
+  ProgramVersionNotEditableError,
 } from "@onevyrt/domain";
+import { PlatformAdminRequiredError } from "@onevyrt/auth";
 import { logger, newCorrelationId } from "@onevyrt/observability";
 import { getServerContext } from "@/lib/server";
 import { getCurrentUser } from "@/lib/session";
 import { requireCsrf } from "@/lib/csrf";
 
 interface RouteParams {
-  params: { enrollmentId: string; lessonId: string };
+  params: { programId: string; versionId: string; lessonId: string };
 }
 
-// GET is the resume entry point: idempotent (see
-// startOrResumeLesson's doc comment), safe to call on every lesson open.
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   const user = await getCurrentUser();
   if (!user) {
@@ -29,27 +28,20 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { db } = getServerContext();
 
   try {
-    const progress = await startOrResumeLesson(db, {
+    const prerequisites = await listPrerequisitesForLesson(db, {
       actorUserId: user.id,
-      enrollmentId: params.enrollmentId,
       lessonId: params.lessonId,
     });
-    return NextResponse.json({ progress });
+    return NextResponse.json({ prerequisites });
   } catch (error) {
-    if (error instanceof EnrollmentNotFoundError || error instanceof LessonNotFoundError) {
+    if (error instanceof LessonNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-    if (error instanceof PrerequisitesNotMetError) {
-      return NextResponse.json(
-        { error: error.message, incompleteLessonIds: error.incompleteLessonIds },
-        { status: 409 },
-      );
     }
     throw error;
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function POST(request: NextRequest, { params }: RouteParams) {
   const correlationId = newCorrelationId();
 
   const user = await getCurrentUser();
@@ -61,9 +53,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
   }
 
-  const parsed = updateLessonProgressRequestSchema.safeParse(
-    await request.json().catch(() => null),
-  );
+  const parsed = addPrerequisiteRequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request", issues: parsed.error.flatten() },
@@ -73,38 +63,42 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   const { db } = getServerContext();
 
-  const patch = Object.fromEntries(
-    Object.entries(parsed.data).filter(([, value]) => value !== undefined),
-  );
-
   try {
-    const progress = await updateLessonProgress(db, {
+    const prerequisite = await addPrerequisite(db, {
       actorUserId: user.id,
-      enrollmentId: params.enrollmentId,
       lessonId: params.lessonId,
-      ...patch,
+      prerequisiteLessonId: parsed.data.prerequisiteLessonId,
     });
-    logger.info("lesson progress updated", {
+    logger.info("prerequisite added", {
       correlationId,
       userId: user.id,
-      enrollmentId: params.enrollmentId,
       lessonId: params.lessonId,
+      prerequisiteLessonId: parsed.data.prerequisiteLessonId,
     });
-    return NextResponse.json({ progress });
+    return NextResponse.json({ prerequisite }, { status: 201 });
   } catch (error) {
-    if (error instanceof EnrollmentNotFoundError || error instanceof LessonNotFoundError) {
+    if (error instanceof PlatformAdminRequiredError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+    if (error instanceof LessonNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
-    if (error instanceof LessonBlockNotFoundError) {
+    if (
+      error instanceof SelfPrerequisiteError ||
+      error instanceof PrerequisiteNotInSameVersionError
+    ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    if (error instanceof LessonProgressNotFoundError) {
+    if (
+      error instanceof DuplicatePrerequisiteError ||
+      error instanceof ProgramVersionNotEditableError
+    ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
-    logger.error("lesson progress update failed", {
+    logger.error("prerequisite creation failed", {
       correlationId,
       error: (error as Error).message,
     });
-    return NextResponse.json({ error: "Failed to update lesson progress" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to add prerequisite" }, { status: 500 });
   }
 }
