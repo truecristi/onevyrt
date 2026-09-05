@@ -802,3 +802,81 @@ export const formulaDefinitions = pgTable(
       .where(sql`${table.status} = 'published'`),
   }),
 );
+
+/**
+ * PRD-NUMBERS-002 vertical slice: scenario modeling (README "Numbers and
+ * modeling" -> "Scenario modeling", second slice of Phase 4). Spec
+ * section 6.11: "Create immutable base, likely, best, worst and custom
+ * scenarios. Users may override selected assumptions without modifying
+ * the baseline."
+ *
+ * A scenario is a named lens over the workspace's existing Phase 2
+ * assumptions (schema.ts's assumptions table) rather than a parallel set
+ * of numbers - scenarioAssumptionOverrides (below) points at real
+ * assumptions rows and only stores the values that differ from that
+ * assumption's own current baseline value. At most one "base"/"best"/
+ * "worst" scenario per workspace (the canonical three), but any number
+ * of "custom" ones - enforced by a partial unique index on
+ * (workspace_id, scenario_type) that excludes 'custom'.
+ *
+ * "Immutable" in the spec's sense means a scenario's *identity* doesn't
+ * change into a different one - it does not mean overrides can never be
+ * adjusted after creation. This slice keeps override editing simple
+ * (upsert/remove a single row), matching the "current state, not
+ * history" convention most Phase 2/3 tables already use; a scenario is
+ * never merged back into the baseline, which is the property the spec
+ * actually cares about.
+ */
+export const scenarios = pgTable(
+  "scenarios",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    scenarioType: text("scenario_type").notNull().default("custom"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("scenarios_workspace_id_idx").on(table.workspaceId),
+    scenarioTypeCheck: check(
+      "scenarios_scenario_type_check",
+      sql`${table.scenarioType} IN ('base', 'best', 'worst', 'custom')`,
+    ),
+    onePerCanonicalTypePerWorkspace: uniqueIndex("scenarios_one_per_canonical_type_idx")
+      .on(table.workspaceId, table.scenarioType)
+      .where(sql`${table.scenarioType} != 'custom'`),
+  }),
+);
+
+/**
+ * The actual overrides for one scenario: (scenarioId, assumptionId) ->
+ * value. Only the assumptions a scenario actually overrides get a row
+ * here - resolveScenarioAssumptions (scenario-use-cases.ts) falls back
+ * to the assumption's own baseline value for every assumption a
+ * scenario doesn't override, which is exactly "override selected
+ * assumptions without modifying the baseline".
+ */
+export const scenarioAssumptionOverrides = pgTable(
+  "scenario_assumption_overrides",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    scenarioId: uuid("scenario_id")
+      .notNull()
+      .references(() => scenarios.id, { onDelete: "cascade" }),
+    assumptionId: uuid("assumption_id")
+      .notNull()
+      .references(() => assumptions.id, { onDelete: "cascade" }),
+    value: doublePrecision("value").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byScenario: index("scenario_assumption_overrides_scenario_id_idx").on(table.scenarioId),
+    uniquePerScenarioAssumption: unique(
+      "scenario_assumption_overrides_scenario_id_assumption_id_key",
+    ).on(table.scenarioId, table.assumptionId),
+  }),
+);
