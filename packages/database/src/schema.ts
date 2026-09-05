@@ -1124,3 +1124,57 @@ export const artifactVersions = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-BUILD-006 vertical slice: experiments (README "Build and execution"
+ * -> "Experiment system", sixth slice of Phase 5; spec section 6.19
+ * "Experiments and evidence" - "hypothesis, assumption, metric, baseline,
+ * target, design, audience, dates, budget, owner, result, confidence,
+ * evidence and decision"). Deliberately small - hypothesis, method,
+ * status, an optional assumption link, an optional owner, start/end
+ * dates and a result/decision pair - not the full field list (metric,
+ * baseline/target, audience, budget, confidence), which stays a later,
+ * separate slice. This is the "later, separate slice" referenced in
+ * tasks' and projects' own doc comments above.
+ *
+ * startedAt/endedAt are real derived fields, same reasoning as tasks'
+ * completedAt: they record *when* the experiment actually moved into
+ * that state, set by the status transition itself (experiment-use-
+ * cases.ts's updateExperiment), not left for a caller to backfill by
+ * hand.
+ */
+export const experiments = pgTable(
+  "experiments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    hypothesis: text("hypothesis").notNull().default(""),
+    method: text("method").notNull().default(""),
+    status: text("status").notNull().default("planned"),
+    assumptionId: uuid("assumption_id").references(() => assumptions.id, {
+      onDelete: "set null",
+    }),
+    ownerId: uuid("owner_id").references(() => users.id, { onDelete: "set null" }),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    result: text("result").notNull().default(""),
+    decision: text("decision"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("experiments_workspace_id_idx").on(table.workspaceId),
+    statusCheck: check(
+      "experiments_status_check",
+      sql`${table.status} IN ('planned', 'running', 'completed', 'abandoned')`,
+    ),
+    /** NULL (no decision made yet) passes a CHECK unchecked - this only constrains a decision once one is actually set. */
+    decisionCheck: check(
+      "experiments_decision_check",
+      sql`${table.decision} IS NULL OR ${table.decision} IN ('adopt', 'iterate', 'retest', 'stop', 'insufficient_evidence', 'reject')`,
+    ),
+  }),
+);
