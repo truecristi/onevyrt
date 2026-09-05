@@ -54,6 +54,16 @@ export class AssumptionNotFoundError extends Error {
   }
 }
 
+/** Thrown when an assumption's ownerId is set to a user who isn't a member of the assumption's workspace - see assumption-use-cases.ts's assertOwnerInWorkspace. */
+export class AssumptionOwnerNotInWorkspaceError extends Error {
+  constructor(ownerId: string, workspaceId: string) {
+    super(
+      `User ${ownerId} is not a member of workspace ${workspaceId} and cannot own a number in it`,
+    );
+    this.name = "AssumptionOwnerNotInWorkspaceError";
+  }
+}
+
 export class DecisionNotFoundError extends Error {
   constructor(decisionId: string) {
     super(`Decision ${decisionId} not found in this workspace`);

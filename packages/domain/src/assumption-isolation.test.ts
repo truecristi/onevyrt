@@ -4,7 +4,7 @@ import { createDatabase, runMigrations, type Database } from "@onevyrt/database"
 import { getTestDatabaseUrl, truncateTables } from "@onevyrt/testing";
 import { registerUser } from "./auth-use-cases";
 import { createAssumption, listAssumptions, updateAssumption } from "./assumption-use-cases";
-import { AssumptionNotFoundError } from "./errors";
+import { AssumptionNotFoundError, AssumptionOwnerNotInWorkspaceError } from "./errors";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import type { Pool } from "pg";
 
@@ -64,6 +64,7 @@ describe("assumptions (Phase 2 seventh slice)", () => {
       statement: "Trial-to-paid conversion is 2%",
       description: "",
       source: "industry benchmark",
+      sourceType: "estimate-user",
       confidence: "medium",
       unit: "%",
       value: 2,
@@ -78,6 +79,7 @@ describe("assumptions (Phase 2 seventh slice)", () => {
       statement: "Average order value grows 5% per quarter",
       description: "",
       source: "",
+      sourceType: "estimate-user",
       confidence: "low",
       unit: "%",
     });
@@ -98,6 +100,7 @@ describe("assumptions (Phase 2 seventh slice)", () => {
       statement: "Churn is under 3% monthly",
       description: "",
       source: "",
+      sourceType: "estimate-user",
       confidence: "low",
       unit: "%",
       value: 3,
@@ -124,6 +127,7 @@ describe("assumptions (Phase 2 seventh slice)", () => {
       statement: "Something with a number",
       description: "",
       source: "",
+      sourceType: "estimate-user",
       confidence: "medium",
       unit: "",
       value: 10,
@@ -162,6 +166,7 @@ describe("assumptions (Phase 2 seventh slice)", () => {
       statement: "Alice's assumption",
       description: "",
       source: "",
+      sourceType: "estimate-user",
       confidence: "medium",
       unit: "",
     });
@@ -177,6 +182,7 @@ describe("assumptions (Phase 2 seventh slice)", () => {
         statement: "Should fail",
         description: "",
         source: "",
+        sourceType: "estimate-user",
         confidence: "medium",
         unit: "",
       }),
@@ -190,5 +196,86 @@ describe("assumptions (Phase 2 seventh slice)", () => {
         status: "validated",
       }),
     ).rejects.toThrow(WorkspaceAccessDeniedError);
+  });
+
+  it("records full provenance on create, updates it, and rejects an owner outside the workspace", async () => {
+    const alice = await registerWithWorkspace("alice5@example.com", "Alice Co 5");
+    const bob = await registerWithWorkspace("bob5@example.com", "Bob Co 5");
+
+    const derived = await createAssumption(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      statement: "Break-even is 500 units",
+      description: "",
+      source: "",
+      sourceType: "derived",
+      sourceDate: "2026-01-01T00:00:00.000Z",
+      ownerId: alice.user.id,
+      formulaTraceKey: "break_even_point",
+      formulaTraceVersion: 1,
+      confidence: "high",
+      unit: "units",
+      value: 500,
+    });
+    expect(derived.sourceType).toBe("derived");
+    expect(derived.sourceDate).toEqual(new Date("2026-01-01T00:00:00.000Z"));
+    expect(derived.ownerId).toBe(alice.user.id);
+    expect(derived.formulaTraceKey).toBe("break_even_point");
+    expect(derived.formulaTraceVersion).toBe(1);
+
+    // A plain estimate with no provenance beyond the default carries no owner or trace.
+    const estimate = await createAssumption(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      statement: "Guessing churn is 5%",
+      description: "",
+      source: "",
+      sourceType: "estimate-user",
+      confidence: "low",
+      unit: "%",
+    });
+    expect(estimate.ownerId).toBeNull();
+    expect(estimate.formulaTraceKey).toBeNull();
+
+    await expect(
+      createAssumption(db, {
+        workspaceId: alice.workspace.id,
+        actorUserId: alice.user.id,
+        statement: "Owned by an outsider",
+        description: "",
+        source: "",
+        sourceType: "estimate-user",
+        confidence: "medium",
+        unit: "",
+        ownerId: bob.user.id,
+      }),
+    ).rejects.toThrow(AssumptionOwnerNotInWorkspaceError);
+
+    const reassigned = await updateAssumption(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      assumptionId: estimate.id,
+      sourceType: "benchmark",
+      ownerId: alice.user.id,
+    });
+    expect(reassigned.sourceType).toBe("benchmark");
+    expect(reassigned.ownerId).toBe(alice.user.id);
+
+    const clearedOwner = await updateAssumption(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      assumptionId: estimate.id,
+      ownerId: null,
+    });
+    expect(clearedOwner.ownerId).toBeNull();
+
+    await expect(
+      updateAssumption(db, {
+        workspaceId: alice.workspace.id,
+        actorUserId: alice.user.id,
+        assumptionId: estimate.id,
+        ownerId: bob.user.id,
+      }),
+    ).rejects.toThrow(AssumptionOwnerNotInWorkspaceError);
   });
 });

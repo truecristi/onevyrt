@@ -97,6 +97,7 @@ describe("evidence (Phase 2 ninth slice)", () => {
       statement: "Conversion is 2%",
       description: "",
       source: "",
+      sourceType: "estimate-user",
       confidence: "medium",
       unit: "%",
     });
@@ -142,6 +143,7 @@ describe("evidence (Phase 2 ninth slice)", () => {
       statement: "Bob's assumption",
       description: "",
       source: "",
+      sourceType: "estimate-user",
       confidence: "medium",
       unit: "",
     });

@@ -115,6 +115,7 @@ describe("financial dashboard (Phase 4 fifth slice)", () => {
       statement: "Churn is under 5%",
       description: "",
       source: "",
+      sourceType: "estimate-user",
       confidence: "medium",
       unit: "%",
       value: 5,
