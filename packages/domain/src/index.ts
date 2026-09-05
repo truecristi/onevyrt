@@ -34,3 +34,4 @@ export * from "./ai-context-use-cases";
 export * from "./lesson-explanation-use-cases";
 export * from "./artifact-proposal-use-cases";
 export * from "./task-proposal-use-cases";
+export * from "./ai-call-record-use-cases";

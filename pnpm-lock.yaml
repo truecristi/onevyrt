@@ -216,6 +216,9 @@ importers:
 
   packages/domain:
     dependencies:
+      '@onevyrt/ai':
+        specifier: workspace:*
+        version: link:../ai
       '@onevyrt/auth':
         specifier: workspace:*
         version: link:../auth
