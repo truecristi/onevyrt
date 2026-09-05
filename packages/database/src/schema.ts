@@ -707,3 +707,52 @@ export const lessonPrerequisites = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-CURRICULUM-007 vertical slice: lesson application (README "Lesson
+ * application") - links a learner's "build"/"practice"/"implementation"
+ * block (spec section 3.1: "a structured build activity that creates or
+ * updates a canonical asset") to the real Phase 2 business record it
+ * produced, e.g. a lesson about setting goals pointing at the Goal the
+ * learner actually created in their business. This is the concrete tie
+ * between curriculum (platform-wide) and business data (workspace-owned)
+ * the spec's canonical graph implies but no earlier slice wires up.
+ *
+ * resource_id is polymorphic - it can reference a row in any of several
+ * workspace-scoped tables depending on resource_type - so it's a bare
+ * uuid with no foreign key, the same reasoning evidence's
+ * assumption_id/decision_id links would have needed if they pointed at
+ * more than two tables. Existence and workspace ownership are checked in
+ * application code (lesson-application-use-cases.ts), not the database.
+ * One application per (enrollment, block): pointing it at a different
+ * resource overwrites, not logs a history - "what this block currently
+ * produced", matching block_responses' own "current answer" semantics.
+ */
+export const lessonApplications = pgTable(
+  "lesson_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    enrollmentId: uuid("enrollment_id")
+      .notNull()
+      .references(() => enrollments.id, { onDelete: "cascade" }),
+    lessonBlockId: uuid("lesson_block_id")
+      .notNull()
+      .references(() => lessonBlocks.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    resourceType: text("resource_type").notNull(),
+    resourceId: uuid("resource_id").notNull(),
+    note: text("note").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byEnrollment: index("lesson_applications_enrollment_id_idx").on(table.enrollmentId),
+    byWorkspace: index("lesson_applications_workspace_id_idx").on(table.workspaceId),
+    uniquePerEnrollmentAndBlock: unique("lesson_applications_enrollment_id_lesson_block_id_key").on(
+      table.enrollmentId,
+      table.lessonBlockId,
+    ),
+  }),
+);
