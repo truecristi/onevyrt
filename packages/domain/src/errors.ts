@@ -392,3 +392,20 @@ export class TaskBlockerInvalidError extends Error {
     this.name = "TaskBlockerInvalidError";
   }
 }
+
+export class ExperimentNotFoundError extends Error {
+  constructor(experimentId: string) {
+    super(`Experiment ${experimentId} not found in this workspace`);
+    this.name = "ExperimentNotFoundError";
+  }
+}
+
+/** Thrown when an experiment's ownerId is set to a user who isn't a member of the experiment's workspace - see experiment-use-cases.ts's assertOwnerInWorkspace. */
+export class ExperimentOwnerNotInWorkspaceError extends Error {
+  constructor(ownerId: string, workspaceId: string) {
+    super(
+      `User ${ownerId} is not a member of workspace ${workspaceId} and cannot own an experiment in it`,
+    );
+    this.name = "ExperimentOwnerNotInWorkspaceError";
+  }
+}

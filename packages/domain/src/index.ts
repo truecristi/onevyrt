@@ -28,3 +28,4 @@ export * from "./financial-dashboard-use-cases";
 export * from "./funnel-step-use-cases";
 export * from "./artifact-version-use-cases";
 export * from "./project-use-cases";
+export * from "./experiment-use-cases";
