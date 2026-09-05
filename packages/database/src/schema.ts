@@ -973,3 +973,51 @@ export const funnelStages = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-BUILD-003 (Phase 5 third slice: funnel builder, spec section 6.8's
+ * "Funnel step" node family: "landing page, opt-in, webinar, appointment,
+ * sales call, sales page, checkout, confirmation and custom step"). This
+ * is the structural funnel *map* - what pages/steps this business's
+ * funnel is actually made of - distinct from funnel_stages above, which
+ * is purely the conversion-rate math between stages (PRD-NUMBERS-003).
+ * The full drag/drop React Flow canvas from spec 6.8 is a Phase 5+
+ * frontend concern; this table is the data model a future canvas UI
+ * would read and write.
+ *
+ * offerId is an optional link (e.g. a "sales-page" or "checkout" step
+ * naturally corresponds to the offer being sold there) - nullable
+ * because not every step type has one (a webinar or confirmation page
+ * doesn't), and SET NULL on delete so removing an offer doesn't cascade
+ * into silently deleting funnel structure that still exists.
+ */
+export const funnelSteps = pgTable(
+  "funnel_steps",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    stepType: text("step_type").notNull(),
+    orderIndex: integer("order_index").notNull(),
+    offerId: uuid("offer_id").references(() => offers.id, { onDelete: "set null" }),
+    notes: text("notes").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("funnel_steps_workspace_id_idx").on(table.workspaceId),
+    uniqueOrderPerWorkspace: unique("funnel_steps_workspace_id_order_index_key").on(
+      table.workspaceId,
+      table.orderIndex,
+    ),
+    stepTypeCheck: check(
+      "funnel_steps_step_type_check",
+      sql`${table.stepType} IN (
+        'landing-page', 'opt-in', 'webinar', 'appointment', 'sales-call',
+        'sales-page', 'checkout', 'confirmation', 'custom'
+      )`,
+    ),
+  }),
+);
