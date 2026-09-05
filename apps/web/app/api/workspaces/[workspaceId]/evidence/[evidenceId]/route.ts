@@ -5,6 +5,7 @@ import {
   AssumptionNotFoundError,
   DecisionNotFoundError,
   EvidenceNotFoundError,
+  ExperimentNotFoundError,
 } from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import { logger, newCorrelationId } from "@onevyrt/observability";
@@ -68,9 +69,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
     // 400, not 404: the missing resource here is a field inside this
-    // request's own body (assumptionId/decisionId), not the URL's
-    // resource, so it reads as an invalid request rather than "not found".
-    if (error instanceof AssumptionNotFoundError || error instanceof DecisionNotFoundError) {
+    // request's own body (assumptionId/decisionId/experimentId), not the
+    // URL's resource, so it reads as an invalid request rather than "not
+    // found".
+    if (
+      error instanceof AssumptionNotFoundError ||
+      error instanceof DecisionNotFoundError ||
+      error instanceof ExperimentNotFoundError
+    ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     logger.error("evidence update failed", {

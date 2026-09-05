@@ -5,6 +5,7 @@ import {
   listEvidence,
   AssumptionNotFoundError,
   DecisionNotFoundError,
+  ExperimentNotFoundError,
 } from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import { logger, newCorrelationId } from "@onevyrt/observability";
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       strength: parsed.data.strength,
       ...(parsed.data.assumptionId !== undefined ? { assumptionId: parsed.data.assumptionId } : {}),
       ...(parsed.data.decisionId !== undefined ? { decisionId: parsed.data.decisionId } : {}),
+      ...(parsed.data.experimentId !== undefined ? { experimentId: parsed.data.experimentId } : {}),
       ...(parsed.data.collectedAt !== undefined
         ? { collectedAt: new Date(parsed.data.collectedAt) }
         : {}),
@@ -86,9 +88,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
     // 400, not 404: the missing resource here is a field inside this
-    // request's own body (assumptionId/decisionId), not the URL's
-    // resource, so it reads as an invalid request rather than "not found".
-    if (error instanceof AssumptionNotFoundError || error instanceof DecisionNotFoundError) {
+    // request's own body (assumptionId/decisionId/experimentId), not the
+    // URL's resource, so it reads as an invalid request rather than "not
+    // found".
+    if (
+      error instanceof AssumptionNotFoundError ||
+      error instanceof DecisionNotFoundError ||
+      error instanceof ExperimentNotFoundError
+    ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     logger.error("evidence creation failed", {
