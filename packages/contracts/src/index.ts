@@ -27,3 +27,4 @@ export * from "./projects";
 export * from "./experiments";
 export * from "./launches";
 export * from "./coaching";
+export * from "./artifact-proposals";
