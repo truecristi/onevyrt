@@ -29,3 +29,4 @@ export * from "./launches";
 export * from "./coaching";
 export * from "./artifact-proposals";
 export * from "./task-proposals";
+export * from "./sketch-specifications";
