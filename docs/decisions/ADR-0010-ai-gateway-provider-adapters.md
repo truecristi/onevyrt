@@ -67,6 +67,20 @@ call sites decide, the gateway does not guess.
   approval flow (ADR-0012) are still separate, not-yet-decided slices this
   gateway will sit underneath.
 
+**Update (Phase 6 eleventh/final slice, "Evaluation system"):** the same
+deterministic-provider mechanism this ADR uses for tests now also backs
+`packages/ai`'s golden evaluation harness (`eval-registry.ts`,
+`run-eval.ts`, `evals/*`), per spec §5.4 - each golden case supplies a
+fixed canned response for a real prompt template and checks specific
+properties (factual grounding, appropriate uncertainty, refusal to touch
+identity/ownership fields, referential consistency) the same way a
+production call would be validated, without a live model. `evals/run-
+all.test.ts` is the actual CI gate spec §44 calls for ("AI schema and
+evaluation thresholds for changed capabilities") - a prompt change that
+breaks a golden case fails that test, the same way a broken numerical
+fixture fails a formula test (once ADR-0006 is decided). This closes
+Phase 6's README checklist.
+
 ## Reversibility
 
 High - `AiProvider` is a small interface; adding, removing or replacing an

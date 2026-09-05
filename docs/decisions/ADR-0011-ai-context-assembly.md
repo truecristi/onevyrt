@@ -46,7 +46,7 @@ The "Cost and latency tracking" Phase 6 slice (`ai_call_records`,
 durable row - but that row is metadata only (actor, workspace,
 provider/model, token counts, latency, an estimated cost), never the
 actual prompt/response text. So the concrete question this ADR's
-"retention" half asks - how long a request/response *envelope* persists,
+"retention" half asks - how long a request/response _envelope_ persists,
 who can read it, how it's exported/deleted - is still not decided,
 because nothing in this codebase stores that envelope at all yet. Once
 something does (e.g. a future audit/debugging need to see what a model

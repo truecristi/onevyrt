@@ -16,6 +16,8 @@ export * from "./providers/anthropic";
 export * from "./providers/deterministic";
 export * from "./prompt-registry";
 export * from "./run-prompt";
+export * from "./eval-registry";
+export * from "./run-eval";
 
 // Re-exporting also registers each of these as a side effect of importing
 // this package - see prompt-registry.ts's doc comment for why
@@ -26,3 +28,15 @@ export * from "./prompts/explain-lesson-block";
 export * from "./prompts/propose-artifact-patch";
 export * from "./prompts/propose-task";
 export * from "./prompts/interpret-sketch";
+
+// Golden evaluation suites (README "AI coaching" -> "Evaluation system",
+// eleventh and final Phase 6 slice) register the same way - see
+// eval-registry.ts's doc comment. Not exported for consumption (nothing
+// outside this package needs to import an evaluation case), only
+// imported for the registration side effect.
+import "./evals/explain-calculation";
+import "./evals/coaching-ask";
+import "./evals/explain-lesson-block";
+import "./evals/propose-artifact-patch";
+import "./evals/propose-task";
+import "./evals/interpret-sketch";
