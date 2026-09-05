@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@onevyrt/auth": "workspace:*",
+    "@onevyrt/contracts": "workspace:*",
     "@onevyrt/database": "workspace:*",
     "drizzle-orm": "^0.36.1"
   },

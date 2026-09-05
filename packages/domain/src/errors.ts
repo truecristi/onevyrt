@@ -11,3 +11,10 @@ export class InvalidCredentialsError extends Error {
     this.name = "InvalidCredentialsError";
   }
 }
+
+export class GoalNotFoundError extends Error {
+  constructor(goalId: string) {
+    super(`Goal ${goalId} not found in this workspace`);
+    this.name = "GoalNotFoundError";
+  }
+}
