@@ -4,3 +4,4 @@ export * from "./business-core";
 export * from "./customer-profiles";
 export * from "./offers";
 export * from "./tasks";
+export * from "./business-metrics";
