@@ -24,3 +24,4 @@ export * from "./formula-use-cases";
 export * from "./scenario-use-cases";
 export * from "./funnel-stage-use-cases";
 export * from "./unit-economics-use-cases";
+export * from "./financial-dashboard-use-cases";
