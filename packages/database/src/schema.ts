@@ -201,6 +201,29 @@ export const offers = pgTable(
     status: text("status").notNull().default("draft"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    // PRD-BUILD-001 (Phase 5 first slice: offer builder, spec's "Offer
+    // and funnel building" section - "customer profiles, problem
+    // statements, desired outcomes, positioning statements, value
+    // propositions, offer components, bonuses, pricing, guarantees,
+    // risk reversal, objections"). Additive columns with defaults - no
+    // behavior change for offers created before this slice. Pricing
+    // stays priceCents/currency above; this is the rest of the offer's
+    // persuasive structure, free text plus small jsonb lists rather
+    // than a normalized child table each, since these are ordered,
+    // wholesale-edited lists that belong to exactly one offer, not
+    // independently queried or referenced elsewhere.
+    problemStatement: text("problem_statement").notNull().default(""),
+    desiredOutcome: text("desired_outcome").notNull().default(""),
+    positioningStatement: text("positioning_statement").notNull().default(""),
+    valueProposition: text("value_proposition").notNull().default(""),
+    guarantee: text("guarantee").notNull().default(""),
+    riskReversal: text("risk_reversal").notNull().default(""),
+    /** Array of {name, description} - what the offer actually includes. */
+    offerComponents: jsonb("offer_components").notNull().default([]),
+    /** Array of {name, description, value} - value as free text (e.g. "$500 value"), not a parsed money amount. */
+    bonuses: jsonb("bonuses").notNull().default([]),
+    /** Array of {objection, response} - the standard "but what if..." pairs a sales page addresses. */
+    objections: jsonb("objections").notNull().default([]),
   },
   (table) => ({
     byWorkspace: index("offers_workspace_id_idx").on(table.workspaceId),
