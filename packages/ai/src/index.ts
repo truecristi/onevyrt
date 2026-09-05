@@ -23,3 +23,4 @@ export * from "./prompts/coaching-ask";
 export * from "./prompts/explain-lesson-block";
 export * from "./prompts/propose-artifact-patch";
 export * from "./prompts/propose-task";
+export * from "./prompts/interpret-sketch";
