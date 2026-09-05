@@ -274,6 +274,35 @@ export class ScenarioOverrideNotFoundError extends Error {
   }
 }
 
+export class FunnelStageNotFoundError extends Error {
+  constructor(funnelStageId: string) {
+    super(`Funnel stage ${funnelStageId} not found in this workspace`);
+    this.name = "FunnelStageNotFoundError";
+  }
+}
+
+export class DuplicateFunnelStageOrderError extends Error {
+  constructor(workspaceId: string, orderIndex: number) {
+    super(`Workspace ${workspaceId} already has a funnel stage at position ${orderIndex}`);
+    this.name = "DuplicateFunnelStageOrderError";
+  }
+}
+
+export class FunnelHasNoStagesError extends Error {
+  constructor(workspaceId: string) {
+    super(`Workspace ${workspaceId} has no funnel stages to calculate against`);
+    this.name = "FunnelHasNoStagesError";
+  }
+}
+
+/** Thrown by calculateFunnelRequirements when a stage after the first is missing the conversion rate needed to walk backward through it - see schema.ts's funnelStages doc comment. */
+export class MissingConversionRateError extends Error {
+  constructor(funnelStageId: string, name: string) {
+    super(`Funnel stage "${name}" (${funnelStageId}) has no conversion rate set`);
+    this.name = "MissingConversionRateError";
+  }
+}
+
 export interface MissingCompletionRequirement {
   lessonBlockId: string;
   blockType: string;

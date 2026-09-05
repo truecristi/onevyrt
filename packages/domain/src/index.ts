@@ -22,3 +22,4 @@ export * from "./completion-use-cases";
 export * from "./formula-registry";
 export * from "./formula-use-cases";
 export * from "./scenario-use-cases";
+export * from "./funnel-stage-use-cases";
