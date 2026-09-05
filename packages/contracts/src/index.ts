@@ -20,3 +20,4 @@ export * from "./formulas";
 export * from "./scenarios";
 export * from "./funnel-stages";
 export * from "./unit-economics";
+export * from "./financial-dashboard";
