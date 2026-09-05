@@ -20,3 +20,4 @@ export * from "./run-prompt";
 // registration happens at module load rather than lazily.
 export * from "./prompts/explain-calculation";
 export * from "./prompts/coaching-ask";
+export * from "./prompts/explain-lesson-block";
