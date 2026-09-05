@@ -302,9 +302,30 @@ export const assumptions = pgTable(
     value: doublePrecision("value"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    // PRD-NUMBERS-006 (Phase 4 sixth slice: assumption provenance,
+    // spec section 6.x "every number carries value, unit, currency,
+    // period, source type, source date, confidence, owner and formula
+    // trace"). `source` above stays the free-text description
+    // ("industry benchmark", "customer interview #4"); sourceType is
+    // the spec's controlled vocabulary distinguishing how a number
+    // came to exist. Additive columns with defaults - no behavior
+    // change for the Phase 2 assumption rows created before this slice.
+    sourceType: text("source_type").notNull().default("estimate-user"),
+    sourceDate: timestamp("source_date", { withTimezone: true }),
+    ownerId: uuid("owner_id").references(() => users.id, { onDelete: "set null" }),
+    // Populated only when sourceType is 'derived' or 'scenario-override' -
+    // which formula (formula_definitions.key/version) produced this
+    // value, so a derived number's trail can be followed back to the
+    // calculation that made it, not just to a person.
+    formulaTraceKey: text("formula_trace_key"),
+    formulaTraceVersion: integer("formula_trace_version"),
   },
   (table) => ({
     byWorkspace: index("assumptions_workspace_id_idx").on(table.workspaceId),
+    sourceTypeCheck: check(
+      "assumptions_source_type_check",
+      sql`${table.sourceType} IN ('actual-imported', 'actual-entered', 'estimate-user', 'estimate-ai', 'benchmark', 'derived', 'scenario-override')`,
+    ),
   }),
 );
 

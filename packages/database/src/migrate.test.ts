@@ -50,6 +50,7 @@ describe("runMigrations", () => {
       "0017_formula_definitions.sql",
       "0018_scenarios.sql",
       "0019_funnel_stages.sql",
+      "0020_assumption_provenance.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
