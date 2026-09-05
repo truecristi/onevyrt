@@ -5,6 +5,7 @@ import {
   timestamp,
   jsonb,
   integer,
+  doublePrecision,
   primaryKey,
   index,
 } from "drizzle-orm/pg-core";
@@ -214,5 +215,43 @@ export const tasks = pgTable(
   },
   (table) => ({
     byWorkspace: index("tasks_workspace_id_idx").on(table.workspaceId),
+  }),
+);
+
+/**
+ * PRD-BIZCORE-006 vertical slice: business metrics. Sits between Goals and
+ * the Phase 4+ numbers-and-modeling engine in the spec's canonical graph
+ * (Workspace -> Business -> Vision -> Outcome -> Metric -> Assumption ->
+ * Model -> Decision -> Action -> Experiment -> Evidence -> Review, section
+ * 3.2). This is the Metric node only: a named, trackable figure with a
+ * baseline/target/current value - not yet wired to goals, models or
+ * experiments, which are later phases.
+ *
+ * Values are doublePrecision rather than integer minor units, unlike
+ * offers' priceCents: a metric can be a percentage, a count or a ratio,
+ * not only money, so there is no single fixed-point representation that
+ * fits every metric. This is a deliberate, documented tradeoff against
+ * the "never floating point" money rule (spec section 40), which applies
+ * to money amounts specifically.
+ */
+export const businessMetrics = pgTable(
+  "business_metrics",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    unit: text("unit").notNull().default(""),
+    direction: text("direction").notNull().default("increase"),
+    cadence: text("cadence").notNull().default("monthly"),
+    baselineValue: doublePrecision("baseline_value"),
+    targetValue: doublePrecision("target_value"),
+    currentValue: doublePrecision("current_value"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("business_metrics_workspace_id_idx").on(table.workspaceId),
   }),
 );
