@@ -69,6 +69,43 @@ issuing a fresh token on every register/login rather than reusing one.
 
 None yet.
 
+## Amendments (post-review, 2026-09-05)
+
+A code review of PRs #1-#4 found two real gaps in this ADR's original
+implementation, both fixed in place rather than left as follow-ups:
+
+- **Logout didn't revoke the session.** `DELETE /api/auth/session`
+  originally only cleared the browser cookie
+  (`apps/web/lib/session.ts`'s `clearSessionCookie`) - the corresponding
+  `sessions` row stayed valid until its 30-day TTL, so a captured raw
+  token kept working after logout. Fixed with `revokeSession()`
+  (`packages/domain/src/auth-use-cases.ts`), which deletes the session row
+  by its token hash; the route now calls a new `logout()` helper that
+  revokes, then clears the cookie.
+- **`registerUser`'s email-uniqueness check was a non-atomic
+  check-then-insert.** Two concurrent registrations for the same email
+  could both pass the upfront `findFirst` before either inserted, and the
+  second would hit `users.email`'s UNIQUE constraint as an unhandled
+  Postgres error (a 500, not the intended 409). Fixed by catching the
+  unique-violation (Postgres error code `23505`) on the insert itself and
+  re-throwing the same `EmailAlreadyRegisteredError` the fast path
+  throws - the upfront check remains as an optimization, but the database
+  constraint is now what's actually relied on for correctness.
+
+One gap is **flagged, not fixed**, because fixing it requires a decision
+this ADR can't make alone:
+
+- **Rate-limiting keys trust `x-forwarded-for` unconditionally**
+  (`apps/web/lib/client-ip.ts`). That header is set by whatever reverse
+  proxy sits in front of the app and Next.js does not validate it - until
+  this is deployed behind a specific, known proxy chain (see ADR-0021),
+  an attacker can set an arbitrary value on every request and get a fresh
+  rate-limit bucket each time, defeating §11's per-IP limits on
+  register/login entirely. The extraction is centralized in one function
+  with this limitation documented prominently, so it's one place to fix
+  once the deployment topology (and therefore which hop to trust) is
+  known - not something to guess at now.
+
 ## Reversibility
 
 Low-to-medium - changing the password hash format is backward compatible

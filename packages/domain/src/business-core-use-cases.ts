@@ -1,18 +1,17 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
-import { assertCanReadWorkspace } from "@onevyrt/auth";
 import type { BusinessStage, GoalStatus } from "@onevyrt/contracts";
-import { getMembership } from "./workspace-use-cases";
+import { requireWorkspaceMembership } from "./workspace-use-cases";
 import { GoalNotFoundError } from "./errors";
 
 /**
  * PRD-BIZCORE-001/002 vertical slice: the canonical business record and
  * goals (README Phase 2, first slice; master spec §2.3's Workspace ->
  * Business -> ... -> Outcome graph). Every function here re-derives the
- * caller's membership from the DB and fails closed via
- * assertCanReadWorkspace - the same tenancy guarantee ADR-0003 documents
- * for Phase 1, extended to a new table rather than re-invented.
+ * caller's membership via requireWorkspaceMembership and fails closed -
+ * the same tenancy guarantee ADR-0003 documents for Phase 1, extended to
+ * new tables rather than re-invented.
  */
 
 export interface BusinessProfileRecord {
@@ -37,19 +36,29 @@ export interface UpsertBusinessProfileInput {
   stage: BusinessStage;
 }
 
-/** One profile per workspace - creates it on first call, updates it on every call after (an "upsert", not a create-only or update-only operation). */
+/**
+ * One profile per workspace - creates it on first call, updates it on
+ * every call after.
+ *
+ * A code review of the original version (check existing, then INSERT or
+ * UPDATE accordingly) found it was a non-atomic check-then-act: two
+ * concurrent first-time saves for the same workspace could both see "no
+ * existing profile" and both attempt an INSERT, and the second would hit
+ * `business_profiles.workspace_id`'s UNIQUE constraint as an unhandled
+ * error. Rewritten as a single atomic `INSERT ... ON CONFLICT (workspace_id)
+ * DO UPDATE`, so the database - not a race-prone read-then-write - is what
+ * actually guarantees "one profile per workspace." The trade-off: the
+ * audit log can no longer distinguish "created" from "updated" without an
+ * extra query, so it records one "business_profile.saved" action instead
+ * of two - a reasonable cost for removing the race entirely.
+ */
 export async function upsertBusinessProfile(
   db: Database,
   input: UpsertBusinessProfileInput,
 ): Promise<BusinessProfileRecord> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   return withTransaction(db, async (tx) => {
-    const existing = await tx.query.businessProfiles.findFirst({
-      where: eq(schema.businessProfiles.workspaceId, input.workspaceId),
-    });
-
     const values = {
       name: input.name,
       vision: input.vision,
@@ -59,23 +68,18 @@ export async function upsertBusinessProfile(
       updatedAt: new Date(),
     };
 
-    const [profile] = existing
-      ? await tx
-          .update(schema.businessProfiles)
-          .set(values)
-          .where(eq(schema.businessProfiles.workspaceId, input.workspaceId))
-          .returning()
-      : await tx
-          .insert(schema.businessProfiles)
-          .values({ workspaceId: input.workspaceId, ...values })
-          .returning();
+    const [profile] = await tx
+      .insert(schema.businessProfiles)
+      .values({ workspaceId: input.workspaceId, ...values })
+      .onConflictDoUpdate({ target: schema.businessProfiles.workspaceId, set: values })
+      .returning();
 
     if (!profile) throw new Error("Failed to save business profile");
 
     await tx.insert(schema.auditLog).values({
       actorUserId: input.actorUserId,
       workspaceId: input.workspaceId,
-      action: existing ? "business_profile.updated" : "business_profile.created",
+      action: "business_profile.saved",
       metadata: { name: profile.name, stage: profile.stage },
     });
 
@@ -92,8 +96,7 @@ export async function getBusinessProfile(
   db: Database,
   input: GetBusinessProfileInput,
 ): Promise<BusinessProfileRecord | null> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   const profile = await db.query.businessProfiles.findFirst({
     where: eq(schema.businessProfiles.workspaceId, input.workspaceId),
@@ -121,8 +124,7 @@ export interface CreateGoalInput {
 }
 
 export async function createGoal(db: Database, input: CreateGoalInput): Promise<GoalRecord> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   return withTransaction(db, async (tx) => {
     const [goal] = await tx
@@ -153,8 +155,7 @@ export interface ListGoalsInput {
 }
 
 export async function listGoals(db: Database, input: ListGoalsInput): Promise<GoalRecord[]> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   const rows = await db
     .select()
@@ -177,8 +178,7 @@ export async function updateGoalStatus(
   db: Database,
   input: UpdateGoalStatusInput,
 ): Promise<GoalRecord> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   return withTransaction(db, async (tx) => {
     const [goal] = await tx
