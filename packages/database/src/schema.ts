@@ -74,14 +74,23 @@ export const sessions = pgTable(
 /** Append-only from the application's perspective (§38). Phase 1 writes to
  * this on register/login/workspace-create only; broader event taxonomy is
  * Phase 2+. */
-export const auditLog = pgTable("audit_log", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
-  workspaceId: uuid("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
-  action: text("action").notNull(),
-  metadata: jsonb("metadata").notNull().default({}),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    workspaceId: uuid("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    metadata: jsonb("metadata").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    // Added in the audit-records slice (PRD-BIZCORE-010) once this table
+    // gained its first read path (listAuditLog) - every write since Phase
+    // 1 has scoped by workspaceId, but nothing queried by it until now.
+    byWorkspace: index("audit_log_workspace_id_idx").on(table.workspaceId),
+  }),
+);
 
 /**
  * Phase 2 schema (README "Core user and business data" - first slice: the

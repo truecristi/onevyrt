@@ -39,6 +39,7 @@ describe("runMigrations", () => {
       "0006_assumptions.sql",
       "0007_decisions.sql",
       "0008_evidence.sql",
+      "0009_audit_log_workspace_index.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
