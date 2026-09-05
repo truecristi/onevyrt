@@ -1230,3 +1230,60 @@ export const launches = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-AI-006 vertical slice: artifact proposals (README "AI coaching" ->
+ * "Artifact proposals", sixth slice of Phase 6; ADR-0012, spec §7.2's
+ * "propose -> validate -> user-review -> accept/edit/reject -> audited-
+ * apply" pipeline). Covers the same three artifact types as
+ * artifactVersions above (offer, customer_profile, funnel_step) -
+ * deliberately not a fourth polymorphic surface, a proposal always
+ * targets an *existing* artifact that already has versioning; proposing
+ * a brand-new artifact is a later, separate extension.
+ *
+ * proposedPatch is stored only after being validated at creation time
+ * against that artifact type's own update-request Zod schema (the same
+ * one the human-facing PATCH route already uses) - "the model returns
+ * JSON conforming to a versioned Zod schema. The server validates" made
+ * concrete without inventing a second, parallel schema per artifact
+ * type. promptTemplateKey/promptTemplateVersion/providerId/model record
+ * exactly what produced this proposal - §7.2's "records model/provider,
+ * prompt template version" - and reviewedByUserId/reviewedAt record who
+ * confirmed or rejected it and when, once a human actually does.
+ */
+export const artifactProposals = pgTable(
+  "artifact_proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    artifactType: text("artifact_type").notNull(),
+    artifactId: uuid("artifact_id").notNull(),
+    proposedPatch: jsonb("proposed_patch").notNull(),
+    rationale: text("rationale").notNull().default(""),
+    promptTemplateKey: text("prompt_template_key").notNull(),
+    promptTemplateVersion: integer("prompt_template_version").notNull(),
+    providerId: text("provider_id").notNull(),
+    model: text("model").notNull(),
+    status: text("status").notNull().default("pending"),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("artifact_proposals_workspace_id_idx").on(table.workspaceId),
+    byArtifact: index("artifact_proposals_artifact_idx").on(table.artifactType, table.artifactId),
+    artifactTypeCheck: check(
+      "artifact_proposals_artifact_type_check",
+      sql`${table.artifactType} IN ('offer', 'customer_profile', 'funnel_step')`,
+    ),
+    statusCheck: check(
+      "artifact_proposals_status_check",
+      sql`${table.status} IN ('pending', 'accepted', 'rejected')`,
+    ),
+  }),
+);
