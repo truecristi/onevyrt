@@ -15,7 +15,7 @@ stored in `docs/decisions/`."
 | [0008](ADR-0008-freeform-sketch-storage.md)                  | Freeform sketch storage and export                            | Proposed                     |
 | [0009](ADR-0009-curriculum-content-schema.md)                | Curriculum content schema and publishing workflow             | Proposed                     |
 | [0010](ADR-0010-ai-gateway-provider-adapters.md)             | AI gateway, provider adapters and model routing               | Accepted (Phase 6 scope)     |
-| [0011](ADR-0011-ai-context-assembly.md)                      | AI context assembly, redaction and retention                  | Proposed                     |
+| [0011](ADR-0011-ai-context-assembly.md)                      | AI context assembly, redaction and retention                  | Partially accepted           |
 | [0012](ADR-0012-ai-proposed-action-approval.md)              | Proposed-action approval and safe mutation                    | Proposed                     |
 | [0013](ADR-0013-background-job-queue.md)                     | Background job queue, retries and idempotency                 | Proposed                     |
 | [0014](ADR-0014-object-storage-upload-validation.md)         | Object storage, upload validation and malware scanning        | Proposed                     |
