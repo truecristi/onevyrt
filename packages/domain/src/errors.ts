@@ -349,3 +349,17 @@ export class LessonCompletionRequirementsNotMetError extends Error {
     this.name = "LessonCompletionRequirementsNotMetError";
   }
 }
+
+export class FunnelStepNotFoundError extends Error {
+  constructor(funnelStepId: string) {
+    super(`Funnel step ${funnelStepId} not found in this workspace`);
+    this.name = "FunnelStepNotFoundError";
+  }
+}
+
+export class DuplicateFunnelStepOrderError extends Error {
+  constructor(workspaceId: string, orderIndex: number) {
+    super(`Workspace ${workspaceId} already has a funnel step at position ${orderIndex}`);
+    this.name = "DuplicateFunnelStepOrderError";
+  }
+}
