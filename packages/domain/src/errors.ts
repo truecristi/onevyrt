@@ -53,3 +53,10 @@ export class AssumptionNotFoundError extends Error {
     this.name = "AssumptionNotFoundError";
   }
 }
+
+export class DecisionNotFoundError extends Error {
+  constructor(decisionId: string) {
+    super(`Decision ${decisionId} not found in this workspace`);
+    this.name = "DecisionNotFoundError";
+  }
+}

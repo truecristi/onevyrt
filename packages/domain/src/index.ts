@@ -7,3 +7,4 @@ export * from "./offer-use-cases";
 export * from "./task-use-cases";
 export * from "./business-metric-use-cases";
 export * from "./assumption-use-cases";
+export * from "./decision-use-cases";
