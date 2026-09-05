@@ -161,4 +161,63 @@ describe("offers (Phase 2 third slice)", () => {
       }),
     ).rejects.toThrow(WorkspaceAccessDeniedError);
   });
+
+  it("builds out an offer's persuasive structure, defaulting to empty and replacing lists wholesale on update", async () => {
+    const alice = await registerWithWorkspace("alice5@example.com", "Alice Co 5");
+
+    const bare = await createOffer(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      name: "Bare offer",
+      description: "",
+      currency: "usd",
+    });
+    expect(bare.problemStatement).toBe("");
+    expect(bare.offerComponents).toEqual([]);
+    expect(bare.bonuses).toEqual([]);
+    expect(bare.objections).toEqual([]);
+
+    const built = await createOffer(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      name: "Full offer",
+      description: "",
+      currency: "usd",
+      problemStatement: "Coaches burn out doing 1:1 calls",
+      desiredOutcome: "A scalable group program",
+      positioningStatement: "The only group coaching system built for solo experts",
+      valueProposition: "Replace 10 hours of calls with 1 hour of leverage",
+      guarantee: "30-day money back",
+      riskReversal: "Cancel anytime before day 30",
+      offerComponents: [{ name: "Weekly group call", description: "Live Q&A" }],
+      bonuses: [
+        { name: "Templates pack", description: "Ready-to-use scripts", value: "$500 value" },
+      ],
+      objections: [{ objection: "I don't have time", response: "It's 1 hour a week" }],
+    });
+    expect(built.positioningStatement).toBe(
+      "The only group coaching system built for solo experts",
+    );
+    expect(built.offerComponents).toEqual([{ name: "Weekly group call", description: "Live Q&A" }]);
+    expect(built.bonuses).toHaveLength(1);
+    expect(built.objections).toEqual([
+      { objection: "I don't have time", response: "It's 1 hour a week" },
+    ]);
+
+    // Updating with a new list replaces it wholesale, not merges into it.
+    const revised = await updateOffer(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      offerId: built.id,
+      objections: [{ objection: "Too expensive", response: "Compare it to 1:1 coaching rates" }],
+    });
+    expect(revised.objections).toEqual([
+      { objection: "Too expensive", response: "Compare it to 1:1 coaching rates" },
+    ]);
+    // Untouched fields survive the update unchanged.
+    expect(revised.positioningStatement).toBe(
+      "The only group coaching system built for solo experts",
+    );
+    expect(revised.bonuses).toHaveLength(1);
+  });
 });

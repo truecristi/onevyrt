@@ -1,12 +1,13 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
-import type { OfferStatus } from "@onevyrt/contracts";
+import type { OfferBonus, OfferComponent, OfferObjection, OfferStatus } from "@onevyrt/contracts";
 import { requireWorkspaceMembership } from "./workspace-use-cases";
 import { OfferNotFoundError } from "./errors";
 
 /**
- * PRD-BIZCORE-004 vertical slice: offers. Same tenancy shape as the other
+ * PRD-BIZCORE-004 vertical slice: offers, extended by PRD-BUILD-001
+ * (Phase 5 first slice: offer builder). Same tenancy shape as the other
  * business-core use cases - re-derive membership via
  * requireWorkspaceMembership (ADR-0003), fail closed, scope every write by
  * workspaceId in the WHERE clause.
@@ -20,6 +21,15 @@ export interface OfferRecord {
   priceCents: number | null;
   currency: string;
   status: OfferStatus;
+  problemStatement: string;
+  desiredOutcome: string;
+  positioningStatement: string;
+  valueProposition: string;
+  guarantee: string;
+  riskReversal: string;
+  offerComponents: OfferComponent[];
+  bonuses: OfferBonus[];
+  objections: OfferObjection[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +41,15 @@ export interface CreateOfferInput {
   description: string;
   currency: string;
   priceCents?: number;
+  problemStatement?: string;
+  desiredOutcome?: string;
+  positioningStatement?: string;
+  valueProposition?: string;
+  guarantee?: string;
+  riskReversal?: string;
+  offerComponents?: OfferComponent[];
+  bonuses?: OfferBonus[];
+  objections?: OfferObjection[];
 }
 
 export async function createOffer(db: Database, input: CreateOfferInput): Promise<OfferRecord> {
@@ -45,6 +64,15 @@ export async function createOffer(db: Database, input: CreateOfferInput): Promis
         description: input.description,
         currency: input.currency,
         priceCents: input.priceCents ?? null,
+        problemStatement: input.problemStatement ?? "",
+        desiredOutcome: input.desiredOutcome ?? "",
+        positioningStatement: input.positioningStatement ?? "",
+        valueProposition: input.valueProposition ?? "",
+        guarantee: input.guarantee ?? "",
+        riskReversal: input.riskReversal ?? "",
+        offerComponents: input.offerComponents ?? [],
+        bonuses: input.bonuses ?? [],
+        objections: input.objections ?? [],
       })
       .returning();
     if (!offer) throw new Error("Failed to create offer");
@@ -87,9 +115,19 @@ export interface UpdateOfferInput {
   status?: OfferStatus;
   /** undefined = leave unchanged; null = clear the price; a number = set it. */
   priceCents?: number | null;
+  problemStatement?: string;
+  desiredOutcome?: string;
+  positioningStatement?: string;
+  valueProposition?: string;
+  guarantee?: string;
+  riskReversal?: string;
+  /** Each list is a full replacement, not a merge - matching how a builder UI edits an ordered list (add/remove/reorder) rather than patching individual entries by id. */
+  offerComponents?: OfferComponent[];
+  bonuses?: OfferBonus[];
+  objections?: OfferObjection[];
 }
 
-/** A partial update, same semantics as updateCustomerProfile - except priceCents, which distinguishes "not provided" (undefined, unchanged) from "explicitly cleared" (null) since a price genuinely can be absent. */
+/** A partial update, same semantics as updateCustomerProfile - except priceCents, which distinguishes "not provided" (undefined, unchanged) from "explicitly cleared" (null) since a price genuinely can be absent. The builder list fields (offerComponents/bonuses/objections) are whole-list replacements, not deep-merged. */
 export async function updateOffer(db: Database, input: UpdateOfferInput): Promise<OfferRecord> {
   await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
@@ -100,6 +138,17 @@ export async function updateOffer(db: Database, input: UpdateOfferInput): Promis
     if (input.currency !== undefined) patch.currency = input.currency;
     if (input.status !== undefined) patch.status = input.status;
     if (input.priceCents !== undefined) patch.priceCents = input.priceCents;
+    if (input.problemStatement !== undefined) patch.problemStatement = input.problemStatement;
+    if (input.desiredOutcome !== undefined) patch.desiredOutcome = input.desiredOutcome;
+    if (input.positioningStatement !== undefined) {
+      patch.positioningStatement = input.positioningStatement;
+    }
+    if (input.valueProposition !== undefined) patch.valueProposition = input.valueProposition;
+    if (input.guarantee !== undefined) patch.guarantee = input.guarantee;
+    if (input.riskReversal !== undefined) patch.riskReversal = input.riskReversal;
+    if (input.offerComponents !== undefined) patch.offerComponents = input.offerComponents;
+    if (input.bonuses !== undefined) patch.bonuses = input.bonuses;
+    if (input.objections !== undefined) patch.objections = input.objections;
 
     const [offer] = await tx
       .update(schema.offers)
