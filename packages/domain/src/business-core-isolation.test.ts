@@ -93,6 +93,37 @@ describe("business core (Phase 2 vertical slice)", () => {
     expect(fetched?.id).toBe(created.id);
   });
 
+  it("resolves concurrent first-time upserts for the same workspace to exactly one row", async () => {
+    const alice = await registerWithWorkspace("alice-race@example.com", "Alice Race Co");
+
+    // Several "first save" attempts racing (e.g. autosave firing twice) -
+    // this is exactly the case a non-atomic check-then-insert would race
+    // on. onConflictDoUpdate makes it safe at the database level.
+    const attempts = Array.from({ length: 5 }, (_, i) =>
+      upsertBusinessProfile(db, {
+        workspaceId: alice.workspace.id,
+        actorUserId: alice.user.id,
+        name: "Alice Race Co",
+        vision: `attempt ${i}`,
+        mission: "",
+        industry: "",
+        stage: "idea",
+      }),
+    );
+
+    const results = await Promise.all(attempts);
+    // All five calls succeed - onConflictDoUpdate never throws, it just
+    // updates - and every result is the same row.
+    const ids = new Set(results.map((r) => r.id));
+    expect(ids.size).toBe(1);
+
+    const rows = await cleanupClient.query(
+      "SELECT count(*) FROM business_profiles WHERE workspace_id = $1",
+      [alice.workspace.id],
+    );
+    expect(Number(rows.rows[0].count)).toBe(1);
+  });
+
   it("returns null for a workspace with no business profile yet", async () => {
     const alice = await registerWithWorkspace("alice2@example.com", "Alice Co 2");
     const profile = await getBusinessProfile(db, {
