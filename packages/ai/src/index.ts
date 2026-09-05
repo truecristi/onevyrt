@@ -21,3 +21,4 @@ export * from "./run-prompt";
 export * from "./prompts/explain-calculation";
 export * from "./prompts/coaching-ask";
 export * from "./prompts/explain-lesson-block";
+export * from "./prompts/propose-artifact-patch";
