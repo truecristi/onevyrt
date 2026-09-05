@@ -303,6 +303,14 @@ export class MissingConversionRateError extends Error {
   }
 }
 
+/** Thrown by calculateUnitEconomics when the offer has no price set - there is no meaningful gross profit or contribution margin without one. */
+export class OfferPriceRequiredError extends Error {
+  constructor(offerId: string) {
+    super(`Offer ${offerId} has no price set - unit economics needs one`);
+    this.name = "OfferPriceRequiredError";
+  }
+}
+
 export interface MissingCompletionRequirement {
   lessonBlockId: string;
   blockType: string;
