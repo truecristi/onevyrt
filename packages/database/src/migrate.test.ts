@@ -19,7 +19,7 @@ describe("runMigrations", () => {
     // whenever a new migration adds a table - see the table-name assertion
     // below, which needs the same update.
     await client.query(`
-      DROP TABLE IF EXISTS lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
+      DROP TABLE IF EXISTS formula_definitions, lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
     `);
   });
 
@@ -47,6 +47,7 @@ describe("runMigrations", () => {
       "0014_block_responses.sql",
       "0015_lesson_prerequisites.sql",
       "0016_lesson_applications.sql",
+      "0017_formula_definitions.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
@@ -65,6 +66,7 @@ describe("runMigrations", () => {
       "decisions",
       "enrollments",
       "evidence",
+      "formula_definitions",
       "goals",
       "lesson_applications",
       "lesson_blocks",

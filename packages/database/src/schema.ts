@@ -756,3 +756,49 @@ export const lessonApplications = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-NUMBERS-001 vertical slice: the versioned formula library (README
+ * "Numbers and modeling" -> "Versioned formula library", first slice of
+ * Phase 4). The spec requires every important number to retain "its
+ * formula version" - this table is that version history, platform-wide
+ * content authored by a platform admin, same draft/published/
+ * one-published-per-key shape as programVersions above: publishing
+ * freezes a version, edits create a new one, at most one version of a
+ * given formula key is published at a time.
+ *
+ * The formula's actual computation is NOT stored here as a string
+ * expression to eval - that's an injection/correctness risk for limited
+ * benefit, and this system has no legitimate need for user-authored
+ * arbitrary math. Instead each (key, version) pair is implemented as a
+ * plain TypeScript function in formula-registry.ts (packages/domain);
+ * this table is the versioned, publishable metadata describing what a
+ * formula is, what named inputs it needs (with unit/description), and
+ * what unit it outputs - the source of truth callers consult before
+ * invoking the matching registry function, and what listFormulaDefinitions
+ * shows a workspace so they know which formulas exist and at what version.
+ */
+export const formulaDefinitions = pgTable(
+  "formula_definitions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    key: text("key").notNull(),
+    version: integer("version").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    /** Array of {name, unit, description} - the named inputs computeFormula (formula-use-cases.ts) validates a caller's input map against. */
+    inputSchema: jsonb("input_schema").notNull(),
+    outputUnit: text("output_unit").notNull(),
+    status: text("status").notNull().default("draft"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byKey: index("formula_definitions_key_idx").on(table.key),
+    uniqueVersionPerKey: unique("formula_definitions_key_version_key").on(table.key, table.version),
+    onePublishedPerKey: uniqueIndex("formula_definitions_one_published_per_key_idx")
+      .on(table.key)
+      .where(sql`${table.status} = 'published'`),
+  }),
+);
