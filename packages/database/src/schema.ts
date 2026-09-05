@@ -1287,3 +1287,46 @@ export const artifactProposals = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-AI-007 vertical slice: task proposals (README "AI coaching" ->
+ * "Task proposals", seventh slice of Phase 6; ADR-0012, spec §7.1's
+ * "suggest experiments and actions grounded in current data"). Unlike
+ * artifactProposals above (which patches an *existing* record),
+ * accepting a task proposal *creates* a new task - so this stores the
+ * proposed task's fields, not a patch, and records which task was
+ * actually created (createdTaskId) once accepted, for traceability.
+ * Same propose -> validate -> user-review -> accept/reject shape
+ * otherwise; see artifact-proposal-use-cases.ts's doc comment for why
+ * accept runs as two separate transactions rather than one.
+ */
+export const taskProposals = pgTable(
+  "task_proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    proposedTask: jsonb("proposed_task").notNull(),
+    rationale: text("rationale").notNull().default(""),
+    promptTemplateKey: text("prompt_template_key").notNull(),
+    promptTemplateVersion: integer("prompt_template_version").notNull(),
+    providerId: text("provider_id").notNull(),
+    model: text("model").notNull(),
+    status: text("status").notNull().default("pending"),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdTaskId: uuid("created_task_id").references(() => tasks.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("task_proposals_workspace_id_idx").on(table.workspaceId),
+    statusCheck: check(
+      "task_proposals_status_check",
+      sql`${table.status} IN ('pending', 'accepted', 'rejected')`,
+    ),
+  }),
+);
