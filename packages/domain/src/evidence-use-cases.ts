@@ -3,16 +3,23 @@ import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
 import type { EvidenceStrength } from "@onevyrt/contracts";
 import { requireWorkspaceMembership } from "./workspace-use-cases";
-import { AssumptionNotFoundError, DecisionNotFoundError, EvidenceNotFoundError } from "./errors";
+import {
+  AssumptionNotFoundError,
+  DecisionNotFoundError,
+  EvidenceNotFoundError,
+  ExperimentNotFoundError,
+} from "./errors";
 
 /**
- * PRD-BIZCORE-009 vertical slice: evidence. Same tenancy shape as the
- * other business-core use cases - requireWorkspaceMembership (ADR-0003),
- * every write scoped by workspaceId in the WHERE clause - plus a second
- * check this slice adds: an assumptionId/decisionId link is only allowed
- * when that record exists *in the same workspace*, checked explicitly
- * here because the database foreign key alone can't express that (see the
- * doc comment on schema.ts's evidence table).
+ * PRD-BIZCORE-009 vertical slice: evidence, extended by PRD-BUILD-007
+ * (Phase 5 seventh slice: evidence collection) with a link to an
+ * experiment. Same tenancy shape as the other business-core use cases -
+ * requireWorkspaceMembership (ADR-0003), every write scoped by
+ * workspaceId in the WHERE clause - plus a second check this slice adds:
+ * an assumptionId/decisionId/experimentId link is only allowed when that
+ * record exists *in the same workspace*, checked explicitly here because
+ * the database foreign key alone can't express that (see the doc comment
+ * on schema.ts's evidence table).
  */
 
 export interface EvidenceRecord {
@@ -24,6 +31,7 @@ export interface EvidenceRecord {
   strength: EvidenceStrength;
   assumptionId: string | null;
   decisionId: string | null;
+  experimentId: string | null;
   collectedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -55,6 +63,20 @@ async function assertDecisionInWorkspace(
   if (!row) throw new DecisionNotFoundError(decisionId);
 }
 
+async function assertExperimentInWorkspace(
+  db: Database,
+  workspaceId: string,
+  experimentId: string,
+): Promise<void> {
+  const [row] = await db
+    .select({ id: schema.experiments.id })
+    .from(schema.experiments)
+    .where(
+      and(eq(schema.experiments.id, experimentId), eq(schema.experiments.workspaceId, workspaceId)),
+    );
+  if (!row) throw new ExperimentNotFoundError(experimentId);
+}
+
 export interface CreateEvidenceInput {
   workspaceId: string;
   actorUserId: string;
@@ -64,6 +86,7 @@ export interface CreateEvidenceInput {
   strength: EvidenceStrength;
   assumptionId?: string;
   decisionId?: string;
+  experimentId?: string;
   collectedAt?: Date;
 }
 
@@ -78,6 +101,9 @@ export async function createEvidence(
   if (input.decisionId !== undefined) {
     await assertDecisionInWorkspace(db, input.workspaceId, input.decisionId);
   }
+  if (input.experimentId !== undefined) {
+    await assertExperimentInWorkspace(db, input.workspaceId, input.experimentId);
+  }
 
   return withTransaction(db, async (tx) => {
     const [item] = await tx
@@ -90,6 +116,7 @@ export async function createEvidence(
         strength: input.strength,
         assumptionId: input.assumptionId ?? null,
         decisionId: input.decisionId ?? null,
+        experimentId: input.experimentId ?? null,
         collectedAt: input.collectedAt ?? null,
       })
       .returning();
@@ -137,6 +164,7 @@ export interface UpdateEvidenceInput {
   /** undefined = leave unchanged; null = detach; a uuid = attach (validated to be in this workspace). */
   assumptionId?: string | null;
   decisionId?: string | null;
+  experimentId?: string | null;
   collectedAt?: Date | null;
 }
 
@@ -151,6 +179,9 @@ export async function updateEvidence(
   if (input.decisionId !== undefined && input.decisionId !== null) {
     await assertDecisionInWorkspace(db, input.workspaceId, input.decisionId);
   }
+  if (input.experimentId !== undefined && input.experimentId !== null) {
+    await assertExperimentInWorkspace(db, input.workspaceId, input.experimentId);
+  }
 
   return withTransaction(db, async (tx) => {
     const patch: Partial<typeof schema.evidence.$inferInsert> = { updatedAt: new Date() };
@@ -160,6 +191,7 @@ export async function updateEvidence(
     if (input.strength !== undefined) patch.strength = input.strength;
     if (input.assumptionId !== undefined) patch.assumptionId = input.assumptionId;
     if (input.decisionId !== undefined) patch.decisionId = input.decisionId;
+    if (input.experimentId !== undefined) patch.experimentId = input.experimentId;
     if (input.collectedAt !== undefined) patch.collectedAt = input.collectedAt;
 
     const [item] = await tx

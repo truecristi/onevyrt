@@ -5,8 +5,14 @@ import { getTestDatabaseUrl, truncateTables } from "@onevyrt/testing";
 import { registerUser } from "./auth-use-cases";
 import { createAssumption } from "./assumption-use-cases";
 import { createDecision } from "./decision-use-cases";
+import { createExperiment } from "./experiment-use-cases";
 import { createEvidence, listEvidence, updateEvidence } from "./evidence-use-cases";
-import { AssumptionNotFoundError, DecisionNotFoundError, EvidenceNotFoundError } from "./errors";
+import {
+  AssumptionNotFoundError,
+  DecisionNotFoundError,
+  EvidenceNotFoundError,
+  ExperimentNotFoundError,
+} from "./errors";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import type { Pool } from "pg";
 
@@ -35,6 +41,7 @@ describe("evidence (Phase 2 ninth slice)", () => {
   beforeEach(async () => {
     await truncateTables(cleanupClient, [
       "evidence",
+      "experiments",
       "decisions",
       "assumptions",
       "business_metrics",
@@ -228,5 +235,57 @@ describe("evidence (Phase 2 ninth slice)", () => {
         title: "Should fail",
       }),
     ).rejects.toThrow(WorkspaceAccessDeniedError);
+  });
+
+  it("links evidence to an experiment in the same workspace, and rejects one from a different workspace", async () => {
+    const alice = await registerWithWorkspace("alice6@example.com", "Alice Co 6");
+    const bob = await registerWithWorkspace("bob6@example.com", "Bob Co 6");
+
+    const experiment = await createExperiment(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      name: "Pricing test",
+      hypothesis: "",
+      method: "",
+    });
+
+    const item = await createEvidence(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      title: "Result of the pricing test",
+      description: "",
+      sourceUrl: "",
+      strength: "strong",
+      experimentId: experiment.id,
+    });
+    expect(item.experimentId).toBe(experiment.id);
+
+    const detached = await updateEvidence(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      evidenceId: item.id,
+      experimentId: null,
+    });
+    expect(detached.experimentId).toBeNull();
+
+    const bobsExperiment = await createExperiment(db, {
+      workspaceId: bob.workspace.id,
+      actorUserId: bob.user.id,
+      name: "Bob's experiment",
+      hypothesis: "",
+      method: "",
+    });
+
+    await expect(
+      createEvidence(db, {
+        workspaceId: alice.workspace.id,
+        actorUserId: alice.user.id,
+        title: "Should fail",
+        description: "",
+        sourceUrl: "",
+        strength: "moderate",
+        experimentId: bobsExperiment.id,
+      }),
+    ).rejects.toThrow(ExperimentNotFoundError);
   });
 });
