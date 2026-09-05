@@ -14,7 +14,7 @@ stored in `docs/decisions/`."
 | [0007](ADR-0007-structured-canvas-document-model.md)         | Structured canvas document model                              | Proposed                     |
 | [0008](ADR-0008-freeform-sketch-storage.md)                  | Freeform sketch storage and export                            | Proposed                     |
 | [0009](ADR-0009-curriculum-content-schema.md)                | Curriculum content schema and publishing workflow             | Proposed                     |
-| [0010](ADR-0010-ai-gateway-provider-adapters.md)             | AI gateway, provider adapters and model routing               | Proposed                     |
+| [0010](ADR-0010-ai-gateway-provider-adapters.md)             | AI gateway, provider adapters and model routing               | Accepted (Phase 6 scope)     |
 | [0011](ADR-0011-ai-context-assembly.md)                      | AI context assembly, redaction and retention                  | Proposed                     |
 | [0012](ADR-0012-ai-proposed-action-approval.md)              | Proposed-action approval and safe mutation                    | Proposed                     |
 | [0013](ADR-0013-background-job-queue.md)                     | Background job queue, retries and idempotency                 | Proposed                     |
