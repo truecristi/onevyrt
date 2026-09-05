@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: onevyrt
+          POSTGRES_DB: onevyrt_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgres://postgres:onevyrt@localhost:5432/onevyrt_test
+      DATABASE_URL: postgres://postgres:onevyrt@localhost:5432/onevyrt_test
+      AUTH_SECRET: 0000000000000000000000000000000000000000000000000000000000000000
+      APP_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit + integration tests
+        run: pnpm test
+
+      - name: Production build
+        run: pnpm build
+
+  # §44's full release-gate list (tenant-isolation suite as its own job,
+  # critical E2E, migration rehearsal, dependency/secret scanning) is
+  # deliberately not all wired in yet - the tenant-isolation coverage that
+  # exists today already runs as part of `pnpm test` above
+  # (packages/domain/src/auth-workspace-isolation.test.ts). The rest gets
+  # added as the phases that need them (E2E once there's a UI, migration
+  # rehearsal once there's a second migration, dependency scanning as a
+  # fast follow) rather than stubbed as no-op jobs here.
