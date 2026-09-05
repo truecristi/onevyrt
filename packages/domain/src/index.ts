@@ -32,3 +32,4 @@ export * from "./experiment-use-cases";
 export * from "./launch-use-cases";
 export * from "./ai-context-use-cases";
 export * from "./lesson-explanation-use-cases";
+export * from "./artifact-proposal-use-cases";

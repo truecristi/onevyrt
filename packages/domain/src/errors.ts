@@ -416,3 +416,26 @@ export class LaunchNotFoundError extends Error {
     this.name = "LaunchNotFoundError";
   }
 }
+
+export class ArtifactProposalNotFoundError extends Error {
+  constructor(proposalId: string) {
+    super(`Artifact proposal ${proposalId} not found in this workspace`);
+    this.name = "ArtifactProposalNotFoundError";
+  }
+}
+
+/** Thrown when a proposal's proposedPatch doesn't validate against its artifact type's own update-request schema - see artifact-proposal-use-cases.ts's createArtifactProposal. */
+export class InvalidArtifactProposalPatchError extends Error {
+  constructor(artifactType: string, reason: string) {
+    super(`Proposed patch for ${artifactType} is invalid: ${reason}`);
+    this.name = "InvalidArtifactProposalPatchError";
+  }
+}
+
+/** Thrown when accept/reject is attempted on a proposal that isn't still pending - see artifact-proposal-use-cases.ts. */
+export class ArtifactProposalNotPendingError extends Error {
+  constructor(proposalId: string, status: string) {
+    super(`Artifact proposal ${proposalId} is already ${status}, not pending`);
+    this.name = "ArtifactProposalNotPendingError";
+  }
+}
