@@ -256,7 +256,11 @@ export interface LessonRecord {
   updatedAt: Date;
 }
 
-async function assertProgramVersionEditable(db: Database, programVersionId: string): Promise<void> {
+/** Exported for lesson-block-use-cases.ts, which needs the same "the parent program version must still be draft" gate. */
+export async function assertProgramVersionEditable(
+  db: Database,
+  programVersionId: string,
+): Promise<void> {
   const version = await db.query.programVersions.findFirst({
     where: eq(schema.programVersions.id, programVersionId),
   });
