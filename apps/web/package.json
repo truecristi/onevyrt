@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@onevyrt/ai": "workspace:*",
     "@onevyrt/auth": "workspace:*",
     "@onevyrt/contracts": "workspace:*",
     "@onevyrt/database": "workspace:*",
