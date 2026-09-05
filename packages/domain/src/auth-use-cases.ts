@@ -23,12 +23,32 @@ export interface RegisterResult {
   sessionToken: string;
 }
 
+// Postgres unique_violation - see https://www.postgresql.org/docs/current/errcodes-appendix.html
+const PG_UNIQUE_VIOLATION = "23505";
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === PG_UNIQUE_VIOLATION
+  );
+}
+
 /**
  * PRD-AUTH-001 + PRD-TENANCY-001 vertical slice: register creates the user,
  * their first workspace (as owner) and a session, atomically, and appends
  * audit records - the full consequential-command lifecycle from §37,
  * scoped to what this phase needs (no separate authorize step: anyone may
  * register).
+ *
+ * The upfront existence check below is a fast path only, not the actual
+ * guarantee - two concurrent registrations for the same email (a
+ * double-submitted form, a retried request) can both pass it before either
+ * has inserted. `users.email`'s UNIQUE constraint is the real guarantee;
+ * the insert's unique-violation is caught and re-thrown as the same
+ * EmailAlreadyRegisteredError the fast path throws, so callers see one
+ * consistent error either way instead of an unhandled 500 on the race.
  */
 export async function registerUser(
   db: Database,
@@ -48,10 +68,18 @@ export async function registerUser(
   const expiresAt = newSessionExpiry();
 
   const result = await withTransaction(db, async (tx) => {
-    const [user] = await tx
-      .insert(schema.users)
-      .values({ email: input.email, passwordHash })
-      .returning();
+    let user;
+    try {
+      [user] = await tx
+        .insert(schema.users)
+        .values({ email: input.email, passwordHash })
+        .returning();
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new EmailAlreadyRegisteredError(input.email);
+      }
+      throw error;
+    }
     if (!user) throw new Error("Failed to create user");
 
     const [workspace] = await tx
@@ -150,4 +178,19 @@ export async function verifySessionToken(
   if (!user) return null;
 
   return { id: user.id, email: user.email };
+}
+
+/**
+ * Deletes the session row matching this token, so a stolen or logged-out
+ * token stops working immediately instead of remaining valid until its
+ * 30-day TTL. Idempotent - deleting an already-gone/expired session is not
+ * an error, since logging out twice (e.g. two tabs) should just work.
+ */
+export async function revokeSession(
+  db: Database,
+  authSecret: string,
+  token: string,
+): Promise<void> {
+  const tokenHash = hashSessionToken(token, authSecret);
+  await db.delete(schema.sessions).where(eq(schema.sessions.tokenHash, tokenHash));
 }

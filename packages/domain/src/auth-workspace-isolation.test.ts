@@ -2,7 +2,7 @@ import { describe, expect, it, beforeAll, afterAll, beforeEach } from "vitest";
 import { Client } from "pg";
 import { createDatabase, runMigrations, type Database } from "@onevyrt/database";
 import { getTestDatabaseUrl, truncateTables } from "@onevyrt/testing";
-import { registerUser, loginUser, verifySessionToken } from "./auth-use-cases";
+import { registerUser, loginUser, verifySessionToken, revokeSession } from "./auth-use-cases";
 import { getMembership, listWorkspacesForUser } from "./workspace-use-cases";
 import { EmailAlreadyRegisteredError, InvalidCredentialsError } from "./errors";
 import { canReadWorkspace } from "@onevyrt/auth";
@@ -97,6 +97,47 @@ describe("auth + workspace isolation (Phase 1 vertical slice)", () => {
 
   it("returns null for an invalid or garbage session token", async () => {
     expect(await verifySessionToken(db, AUTH_SECRET, "not-a-real-token")).toBeNull();
+  });
+
+  it("revokeSession invalidates the token immediately, not just the cookie", async () => {
+    const result = await registerUser(db, AUTH_SECRET, {
+      email: "logout@example.com",
+      password: "correct-horse-battery-staple",
+      workspaceName: "Logout Co",
+    });
+
+    expect(await verifySessionToken(db, AUTH_SECRET, result.sessionToken)).not.toBeNull();
+
+    await revokeSession(db, AUTH_SECRET, result.sessionToken);
+
+    expect(await verifySessionToken(db, AUTH_SECRET, result.sessionToken)).toBeNull();
+  });
+
+  it("revoking an already-revoked or nonexistent session is a no-op, not an error", async () => {
+    await expect(revokeSession(db, AUTH_SECRET, "never-issued-token")).resolves.toBeUndefined();
+  });
+
+  it("resolves concurrent registrations for the same email to exactly one success, never an unhandled error", async () => {
+    const attempts = Array.from({ length: 5 }, (_, i) =>
+      registerUser(db, AUTH_SECRET, {
+        email: "race@example.com",
+        password: "correct-horse-battery-staple",
+        workspaceName: `Race Co ${i}`,
+      }),
+    );
+
+    const results = await Promise.allSettled(attempts);
+
+    const fulfilled = results.filter((r) => r.status === "fulfilled");
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(4);
+    // Every failure must be the clean, expected error - not a raw Postgres
+    // unique-violation or any other unhandled error type.
+    for (const failure of rejected) {
+      expect(failure.reason).toBeInstanceOf(EmailAlreadyRegisteredError);
+    }
   });
 
   it("prevents a user in one workspace from reading a second workspace they don't belong to", async () => {
