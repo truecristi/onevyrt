@@ -183,3 +183,36 @@ export const offers = pgTable(
     byWorkspace: index("offers_workspace_id_idx").on(table.workspaceId),
   }),
 );
+
+/**
+ * Phase 2 schema (README "Core user and business data" - fourth slice):
+ * tasks. Deliberately small - not the full §6.18 execution system
+ * (projects, milestones, dependencies, blockers, checklists tied to
+ * lessons/decisions), which stays a later, separate slice once Execute has
+ * more than one kind of thing to attach a task to.
+ *
+ * completedAt is a real derived field, not just another status value: it
+ * records *when* a task was actually finished, separately from status
+ * potentially changing again later (§37's domain-invariant spirit - a
+ * fact that happened shouldn't be reconstructible only by guessing from
+ * updatedAt).
+ */
+export const tasks = pgTable(
+  "tasks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    status: text("status").notNull().default("open"),
+    dueDate: timestamp("due_date", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("tasks_workspace_id_idx").on(table.workspaceId),
+  }),
+);
