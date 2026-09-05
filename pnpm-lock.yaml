@@ -104,6 +104,13 @@ importers:
         version: 2.1.9(@types/node@22.20.1)
 
   packages/ai:
+    dependencies:
+      '@onevyrt/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@onevyrt/observability':
+        specifier: workspace:*
+        version: link:../observability
     devDependencies:
       typescript:
         specifier: ^5.6.3
