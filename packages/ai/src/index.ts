@@ -1,14 +1,21 @@
-// PRD-AI-001 vertical slice: the provider-neutral AI gateway (README
-// "AI coaching" -> "Provider-neutral AI gateway", first slice of Phase 6;
-// ADR-0010). Everything else in the spec's AI section (§7, §28) -
-// prompt/schema registry, context assembly, the coaching interface,
-// lesson explanations, artifact/task proposals, sketch specifications,
-// safety checks, cost/latency persistence, evaluation - is a separate,
-// later slice; this only establishes the gateway they'll all sit on top
-// of. See docs/decisions/ADR-0010-ai-gateway-provider-adapters.md.
+// PRD-AI-001/002 vertical slices: the provider-neutral AI gateway and the
+// prompt/schema registry (README "AI coaching" -> first two slices of
+// Phase 6; ADR-0010). Everything else in the spec's AI section (§7, §28) -
+// context assembly, the coaching interface, lesson explanations,
+// artifact/task proposals, sketch specifications, safety checks,
+// cost/latency persistence, evaluation - is a separate, later slice; these
+// two only establish the gateway and template registry they'll all sit on
+// top of. See docs/decisions/ADR-0010-ai-gateway-provider-adapters.md.
 
 export * from "./types";
 export * from "./gateway";
 export * from "./provider-selection";
 export * from "./providers/anthropic";
 export * from "./providers/deterministic";
+export * from "./prompt-registry";
+export * from "./run-prompt";
+
+// Re-exporting also registers this template as a side effect of importing
+// this package - see prompt-registry.ts's doc comment for why
+// registration happens at module load rather than lazily.
+export * from "./prompts/explain-calculation";
