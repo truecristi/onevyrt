@@ -1021,3 +1021,54 @@ export const funnelSteps = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-BUILD-004 (Phase 5 fourth slice: artifact versioning, README
+ * "Offer and funnel building" -> "Important business artifacts must be
+ * versioned. Users must be able to compare changes and understand which
+ * version produced which result."). A generic, cross-artifact version
+ * history rather than a parallel `_versions` table per artifact type
+ * (offer_versions, customer_profile_versions, ...) - every artifact this
+ * slice supports just needs "snapshot the current state, keep every past
+ * snapshot, diff any two" and none of them need artifact-specific
+ * version columns, so one polymorphic table serves all of them (same
+ * "resourceId with no FK, dispatched by resourceType in application
+ * code" reasoning as lesson_applications).
+ *
+ * Versioning here is an explicit action (snapshotArtifactVersion in
+ * artifact-version-use-cases.ts), not an automatic snapshot on every
+ * edit - matching this codebase's own precedent (programVersions,
+ * formulaDefinitions: a deliberate "publish"/"save version" step, not
+ * silent history on every keystroke).
+ */
+export const artifactVersions = pgTable(
+  "artifact_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    artifactType: text("artifact_type").notNull(),
+    artifactId: uuid("artifact_id").notNull(),
+    version: integer("version").notNull(),
+    /** The full serialized state of the artifact at this point - shape depends on artifactType, validated by the contract for that type at the API boundary, not by this table. */
+    snapshot: jsonb("snapshot").notNull(),
+    changeNote: text("change_note").notNull().default(""),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byArtifact: index("artifact_versions_artifact_idx").on(table.artifactType, table.artifactId),
+    uniqueVersionPerArtifact: unique("artifact_versions_artifact_version_key").on(
+      table.artifactType,
+      table.artifactId,
+      table.version,
+    ),
+    artifactTypeCheck: check(
+      "artifact_versions_artifact_type_check",
+      sql`${table.artifactType} IN ('offer', 'customer_profile', 'funnel_step')`,
+    ),
+  }),
+);
