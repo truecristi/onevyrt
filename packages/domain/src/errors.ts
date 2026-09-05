@@ -117,3 +117,31 @@ export class DuplicateLessonSlugError extends Error {
     this.name = "DuplicateLessonSlugError";
   }
 }
+
+export class LessonBlockNotFoundError extends Error {
+  constructor(lessonBlockId: string) {
+    super(`Lesson block ${lessonBlockId} not found`);
+    this.name = "LessonBlockNotFoundError";
+  }
+}
+
+export class EnrollmentNotFoundError extends Error {
+  constructor(enrollmentId: string) {
+    super(`Enrollment ${enrollmentId} not found`);
+    this.name = "EnrollmentNotFoundError";
+  }
+}
+
+export class AlreadyEnrolledError extends Error {
+  constructor(programVersionId: string) {
+    super(`Already enrolled in program version ${programVersionId}`);
+    this.name = "AlreadyEnrolledError";
+  }
+}
+
+export class LessonProgressNotFoundError extends Error {
+  constructor(lessonId: string) {
+    super(`No progress record for lesson ${lessonId} - call startOrResumeLesson first`);
+    this.name = "LessonProgressNotFoundError";
+  }
+}

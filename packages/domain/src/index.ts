@@ -13,3 +13,4 @@ export * from "./audit-log-use-cases";
 export * from "./platform-admin-use-cases";
 export * from "./curriculum-use-cases";
 export * from "./lesson-block-use-cases";
+export * from "./progress-use-cases";
