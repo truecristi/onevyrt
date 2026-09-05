@@ -1,11 +1,11 @@
 # ADR-0012: Proposed-action approval and safe mutation
 
-**Status:** Partially accepted (Phase 6 sixth slice - the artifact-proposal
-pipeline is decided; task proposals reuse the same shape in a later
-slice, and material-mutation-requires-confirmation for higher-stakes
-categories - financial actuals, billing, membership, deletion,
-published communications - is spec §7.2's own carve-out, not yet
-exercised by anything this codebase has built)
+**Status:** Partially accepted (Phase 6 sixth and seventh slices - the
+artifact-proposal and task-proposal pipelines are both decided;
+material-mutation-requires-confirmation for higher-stakes categories -
+financial actuals, billing, membership, deletion, published
+communications - is spec §7.2's own carve-out, not yet exercised by
+anything this codebase has built)
 **Date:** 2026-09-05
 
 ## Context
@@ -56,11 +56,19 @@ validated patch on a retry is idempotent, so the narrow window between
 the two writes is an accepted, documented tradeoff rather than a real
 correctness gap.
 
+### Task proposals (decided, Phase 6 seventh slice)
+
+`packages/domain/src/task-proposal-use-cases.ts` reuses the same
+propose -> validate -> user-review -> accept/reject shape, with one
+real difference: accepting a task proposal _creates_ a new task (via
+task-use-cases.ts's own `createTask` - the same domain function and
+"task.created" audit entry the regular POST route produces), not a
+patch to an existing record, so `task_proposals` stores the proposed
+task's fields and records `createdTaskId` once accepted, for
+traceability back to which task a given proposal produced.
+
 ### Not yet decided
 
-- **Task proposals** (README's next AI coaching slice) - expected to
-  reuse this same pipeline shape, not invent a new one, but that's a
-  decision for the slice that actually builds it.
 - Spec §7.2's explicit carve-out - "financial actuals, billing,
   membership, deletion and published communications never change solely
   from an AI response" - has nothing to decide yet, because nothing this
