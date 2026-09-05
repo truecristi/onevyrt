@@ -152,3 +152,10 @@ export class NoteNotFoundError extends Error {
     this.name = "NoteNotFoundError";
   }
 }
+
+export class BlockTypeMismatchError extends Error {
+  constructor(lessonBlockId: string, expected: string, actual: string) {
+    super(`Block ${lessonBlockId} is a "${actual}" block, not "${expected}"`);
+    this.name = "BlockTypeMismatchError";
+  }
+}

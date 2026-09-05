@@ -15,3 +15,4 @@ export * from "./curriculum-use-cases";
 export * from "./lesson-block-use-cases";
 export * from "./progress-use-cases";
 export * from "./notes-bookmarks-use-cases";
+export * from "./block-response-use-cases";
