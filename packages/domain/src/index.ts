@@ -35,3 +35,4 @@ export * from "./lesson-explanation-use-cases";
 export * from "./artifact-proposal-use-cases";
 export * from "./task-proposal-use-cases";
 export * from "./ai-call-record-use-cases";
+export * from "./scorecard-use-cases";
