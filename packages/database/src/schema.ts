@@ -72,3 +72,45 @@ export const auditLog = pgTable("audit_log", {
   metadata: jsonb("metadata").notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Phase 2 schema (README "Core user and business data" - first slice: the
+ * canonical business record and goals, per the master spec's §2.3 entity
+ * graph: Workspace -> Business -> ... -> Outcome). One row per workspace -
+ * "the living outputs" the README's My Business/Build area reads from,
+ * not a lesson answer.
+ */
+export const businessProfiles = pgTable("business_profiles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  workspaceId: uuid("workspace_id")
+    .notNull()
+    .unique()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  vision: text("vision").notNull().default(""),
+  mission: text("mission").notNull().default(""),
+  industry: text("industry").notNull().default(""),
+  stage: text("stage").notNull().default("idea"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Status is a plain text + CHECK constraint, same reasoning as workspace_members.role (ADR-0003/0004 precedent). */
+export const goals = pgTable(
+  "goals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    targetDate: timestamp("target_date", { withTimezone: true }),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("goals_workspace_id_idx").on(table.workspaceId),
+  }),
+);

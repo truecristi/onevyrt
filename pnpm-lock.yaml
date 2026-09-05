@@ -203,6 +203,9 @@ importers:
       '@onevyrt/auth':
         specifier: workspace:*
         version: link:../auth
+      '@onevyrt/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@onevyrt/database':
         specifier: workspace:*
         version: link:../database

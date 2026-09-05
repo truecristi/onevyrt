@@ -15,9 +15,11 @@ describe("runMigrations", () => {
   beforeAll(async () => {
     client = new Client({ connectionString: TEST_DATABASE_URL });
     await client.connect();
-    // Start from a clean slate so this test is repeatable.
+    // Start from a clean slate so this test is repeatable. Update this list
+    // whenever a new migration adds a table - see the table-name assertion
+    // below, which needs the same update.
     await client.query(`
-      DROP TABLE IF EXISTS audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
+      DROP TABLE IF EXISTS goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
     `);
   });
 
@@ -25,9 +27,9 @@ describe("runMigrations", () => {
     await client.end();
   });
 
-  it("applies the init migration and creates the expected tables", async () => {
+  it("applies every migration and creates the expected tables", async () => {
     const applied = await runMigrations(TEST_DATABASE_URL);
-    expect(applied).toContain("0000_init.sql");
+    expect(applied).toEqual(["0000_init.sql", "0001_business_core.sql"]);
 
     const { rows } = await client.query<{ table_name: string }>(`
       SELECT table_name FROM information_schema.tables
@@ -36,6 +38,8 @@ describe("runMigrations", () => {
     `);
     expect(rows.map((row) => row.table_name)).toEqual([
       "audit_log",
+      "business_profiles",
+      "goals",
       "sessions",
       "users",
       "workspace_members",
