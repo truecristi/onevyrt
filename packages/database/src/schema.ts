@@ -1330,3 +1330,50 @@ export const taskProposals = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-AI-010 vertical slice: cost and latency tracking (README
+ * "AI coaching" -> "Cost and latency tracking", tenth slice of Phase 6;
+ * spec §39's "AI budget" concern). One row per completed AI call -
+ * provider/model, token usage, measured latency, and an estimated cost
+ * (packages/ai's estimateCostMicros, pricing.ts - explicitly an
+ * estimate, never authoritative billing, per §40's financial-assurance
+ * rule).
+ *
+ * workspaceId is nullable because not every AI call happens inside a
+ * workspace context - lesson explanations are scoped to a learner's
+ * personal enrollment, not a workspace, so they still get a row (cost
+ * and latency happened regardless of context) but with workspaceId
+ * null. actorUserId is always required - every call has a real person
+ * who triggered it.
+ *
+ * Written explicitly by each AI route after a successful call (recordAiCall,
+ * ai-call-record-use-cases.ts), the same "domain functions record their
+ * own audit trail explicitly" convention as everywhere else in this
+ * codebase - not an automatic hook buried in the gateway, which lives in
+ * packages/ai and has no database access by design.
+ */
+export const aiCallRecords = pgTable(
+  "ai_call_records",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorUserId: uuid("actor_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id").references(() => workspaces.id, { onDelete: "cascade" }),
+    promptTemplateKey: text("prompt_template_key").notNull(),
+    promptTemplateVersion: integer("prompt_template_version").notNull(),
+    providerId: text("provider_id").notNull(),
+    model: text("model").notNull(),
+    inputTokens: integer("input_tokens").notNull(),
+    outputTokens: integer("output_tokens").notNull(),
+    latencyMs: integer("latency_ms").notNull(),
+    /** USD micros (1,000,000 = $1) - null when the model has no known price (estimateCostMicros). */
+    estimatedCostMicros: integer("estimated_cost_micros"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byActor: index("ai_call_records_actor_user_id_idx").on(table.actorUserId),
+    byWorkspace: index("ai_call_records_workspace_id_idx").on(table.workspaceId),
+  }),
+);
