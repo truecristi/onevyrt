@@ -1377,3 +1377,53 @@ export const aiCallRecords = pgTable(
     byWorkspace: index("ai_call_records_workspace_id_idx").on(table.workspaceId),
   }),
 );
+
+/**
+ * PRD-REVIEW-002 vertical slice: weekly reviews (README "Review and
+ * intelligence" -> "Weekly reviews", second slice of Phase 7; spec
+ * section 6.18's "weekly review"). One row per workspace per calendar
+ * week - upsertWeeklyReview (weekly-review-use-cases.ts) creates it on
+ * the first save for a given week and updates it on every save after,
+ * the same "one row per natural key, INSERT ... ON CONFLICT DO UPDATE"
+ * pattern as businessProfiles (one per workspace), applied here to
+ * (workspace_id, week_start_date).
+ *
+ * weekStartDate is a timestamptz normalized to that week's Monday
+ * 00:00:00 UTC by the domain layer (toWeekStart in weekly-review-use-
+ * cases.ts), not a native Postgres `date` - this schema has no other
+ * day-only column yet, and normalizing at the application layer keeps
+ * every date column in this table the same timestamptz type as the rest
+ * of the schema.
+ *
+ * scorecardSnapshot freezes getWorkspaceScorecard's output (Phase 7
+ * first slice) at the moment this review is saved - a scorecard itself
+ * is deliberately never persisted (it's a live aggregation over other
+ * tables), but a weekly review is exactly the point-in-time record that
+ * should keep one, so a later week's review can be compared against it.
+ */
+export const weeklyReviews = pgTable(
+  "weekly_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    authorUserId: uuid("author_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekStartDate: timestamp("week_start_date", { withTimezone: true }).notNull(),
+    wins: text("wins").notNull().default(""),
+    challenges: text("challenges").notNull().default(""),
+    focusNextWeek: text("focus_next_week").notNull().default(""),
+    scorecardSnapshot: jsonb("scorecard_snapshot").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("weekly_reviews_workspace_id_idx").on(table.workspaceId),
+    uniquePerWorkspaceAndWeek: unique("weekly_reviews_workspace_id_week_start_date_key").on(
+      table.workspaceId,
+      table.weekStartDate,
+    ),
+  }),
+);

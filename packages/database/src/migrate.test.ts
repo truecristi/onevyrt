@@ -19,7 +19,7 @@ describe("runMigrations", () => {
     // whenever a new migration adds a table - see the table-name assertion
     // below, which needs the same update.
     await client.query(`
-      DROP TABLE IF EXISTS ai_call_records, task_proposals, artifact_proposals, launches, experiments, artifact_versions, funnel_steps, funnel_stages, scenario_assumption_overrides, scenarios, formula_definitions, lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, projects, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
+      DROP TABLE IF EXISTS weekly_reviews, ai_call_records, task_proposals, artifact_proposals, launches, experiments, artifact_versions, funnel_steps, funnel_stages, scenario_assumption_overrides, scenarios, formula_definitions, lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, projects, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
     `);
   });
 
@@ -62,6 +62,7 @@ describe("runMigrations", () => {
       "0029_artifact_proposals.sql",
       "0030_task_proposals.sql",
       "0031_ai_call_records.sql",
+      "0032_weekly_reviews.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
@@ -105,6 +106,7 @@ describe("runMigrations", () => {
       "task_proposals",
       "tasks",
       "users",
+      "weekly_reviews",
       "workspace_members",
       "workspaces",
     ]);
