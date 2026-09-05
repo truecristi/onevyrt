@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { askCoachingRequestSchema } from "@onevyrt/contracts";
-import { assembleWorkspaceContext } from "@onevyrt/domain";
+import { assembleWorkspaceContext, recordAiCall } from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import {
   getPromptTemplate,
@@ -65,12 +65,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const provider = selectDefaultProvider();
-    const { output } = await runPrompt(
+    const { output, completion } = await runPrompt(
       provider,
       template,
       { context: context.text, question: parsed.data.question },
       { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
+
+    await recordAiCall(db, {
+      actorUserId: user.id,
+      workspaceId: params.workspaceId,
+      promptTemplateKey: template.key,
+      promptTemplateVersion: template.version,
+      providerId: completion.providerId,
+      model: completion.model,
+      inputTokens: completion.usage.inputTokens,
+      outputTokens: completion.usage.outputTokens,
+      latencyMs: completion.latencyMs,
+    });
 
     logger.info("coaching question answered", {
       correlationId,

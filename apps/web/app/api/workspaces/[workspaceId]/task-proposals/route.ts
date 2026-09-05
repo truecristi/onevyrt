@@ -4,6 +4,7 @@ import {
   assembleWorkspaceContext,
   createTaskProposal,
   listTaskProposals,
+  recordAiCall,
   InvalidTaskProposalError,
 } from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
@@ -92,12 +93,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const provider = selectDefaultProvider();
-    const { output } = await runPrompt(
+    const { output, completion } = await runPrompt(
       provider,
       template,
       { context: context.text, instruction: parsed.data.instruction },
       { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
+
+    await recordAiCall(db, {
+      actorUserId: user.id,
+      workspaceId: params.workspaceId,
+      promptTemplateKey: template.key,
+      promptTemplateVersion: template.version,
+      providerId: completion.providerId,
+      model: completion.model,
+      inputTokens: completion.usage.inputTokens,
+      outputTokens: completion.usage.outputTokens,
+      latencyMs: completion.latencyMs,
+    });
 
     const proposal = await createTaskProposal(db, {
       workspaceId: params.workspaceId,

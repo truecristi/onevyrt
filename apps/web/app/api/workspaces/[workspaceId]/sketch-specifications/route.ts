@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { proposeSketchSpecificationRequestSchema } from "@onevyrt/contracts";
-import { requireWorkspaceMembership } from "@onevyrt/domain";
+import { requireWorkspaceMembership, recordAiCall } from "@onevyrt/domain";
 import { WorkspaceAccessDeniedError } from "@onevyrt/auth";
 import {
   getPromptTemplate,
@@ -25,12 +25,14 @@ interface RouteParams {
  * PRD-AI-008: sketch specifications (README "AI coaching" -> "Sketch
  * specifications", eighth slice of Phase 6; spec §4.4/§28's
  * SketchInterpretation - "no mutation"). Unlike every other AI route in
- * this codebase, this one writes nothing anywhere - not even an audit-log
- * entry - since there is no artifact, task or proposal being created; it
+ * this codebase, this one creates no artifact, task or proposal - it
  * only returns an interpretation of the sketch description the caller
- * sent. Workspace membership is still required, since a sketch's content
- * can describe confidential business context even though nothing about
- * it is persisted here.
+ * sent. It still records an AI call (recordAiCall, tenth slice) for
+ * cost/latency tracking, the same as every other AI-touching route -
+ * "no mutation" means no business-data side effect, not "off the books."
+ * Workspace membership is still required, since a sketch's content can
+ * describe confidential business context even though nothing about the
+ * sketch itself is persisted here.
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const correlationId = newCorrelationId();
@@ -65,12 +67,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const provider = selectDefaultProvider();
-    const { output } = await runPrompt(
+    const { output, completion } = await runPrompt(
       provider,
       template,
       { description: parsed.data.description },
       { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
+
+    await recordAiCall(db, {
+      actorUserId: user.id,
+      workspaceId: params.workspaceId,
+      promptTemplateKey: template.key,
+      promptTemplateVersion: template.version,
+      providerId: completion.providerId,
+      model: completion.model,
+      inputTokens: completion.usage.inputTokens,
+      outputTokens: completion.usage.outputTokens,
+      latencyMs: completion.latencyMs,
+    });
 
     logger.info("sketch specification interpreted", {
       correlationId,

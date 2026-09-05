@@ -4,6 +4,7 @@ import {
   getArtifactForProposal,
   createArtifactProposal,
   listArtifactProposals,
+  recordAiCall,
   ArtifactNotFoundError,
   InvalidArtifactProposalPatchError,
 } from "@onevyrt/domain";
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const provider = selectDefaultProvider();
-    const { output } = await runPrompt(
+    const { output, completion } = await runPrompt(
       provider,
       template,
       {
@@ -106,6 +107,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
       { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
+
+    await recordAiCall(db, {
+      actorUserId: user.id,
+      workspaceId: params.workspaceId,
+      promptTemplateKey: template.key,
+      promptTemplateVersion: template.version,
+      providerId: completion.providerId,
+      model: completion.model,
+      inputTokens: completion.usage.inputTokens,
+      outputTokens: completion.usage.outputTokens,
+      latencyMs: completion.latencyMs,
+    });
 
     const proposal = await createArtifactProposal(db, {
       workspaceId: params.workspaceId,

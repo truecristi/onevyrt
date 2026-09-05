@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   assembleLessonExplanationContext,
+  recordAiCall,
   EnrollmentNotFoundError,
   LessonNotFoundError,
   LessonBlockNotFoundError,
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const provider = selectDefaultProvider();
-    const { output } = await runPrompt(
+    const { output, completion } = await runPrompt(
       provider,
       template,
       {
@@ -67,6 +68,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
       { model: DEFAULT_ANTHROPIC_MODEL, rateLimitKey: `ai:${user.id}` },
     );
+
+    // No workspaceId - this call happened in the learner's personal
+    // enrollment context, not a workspace (schema.ts's aiCallRecords doc
+    // comment).
+    await recordAiCall(db, {
+      actorUserId: user.id,
+      promptTemplateKey: template.key,
+      promptTemplateVersion: template.version,
+      providerId: completion.providerId,
+      model: completion.model,
+      inputTokens: completion.usage.inputTokens,
+      outputTokens: completion.usage.outputTokens,
+      latencyMs: completion.latencyMs,
+    });
 
     logger.info("lesson block explained", {
       correlationId,
