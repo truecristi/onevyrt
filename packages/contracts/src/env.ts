@@ -24,6 +24,13 @@ export const envSchema = z.object({
 
   /** Public base URL of the web app, used for absolute links (e.g. in email). */
   APP_URL: z.string().url().default("http://localhost:3000"),
+
+  /**
+   * Optional - ADR-0010's Anthropic adapter (packages/ai). Absent in any
+   * environment that hasn't configured a real AI provider yet; the
+   * deterministic adapter covers that case, so this must not be required.
+   */
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

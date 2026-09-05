@@ -40,4 +40,13 @@ describe("loadEnv", () => {
     const second = loadEnv({ ...validEnv, DATABASE_URL: "postgres://different" });
     expect(second).toBe(first);
   });
+
+  it("leaves ANTHROPIC_API_KEY undefined when not provided, and parses it when it is", () => {
+    const withoutKey = loadEnv(validEnv);
+    expect(withoutKey.ANTHROPIC_API_KEY).toBeUndefined();
+
+    resetEnvCacheForTests();
+    const withKey = loadEnv({ ...validEnv, ANTHROPIC_API_KEY: "sk-ant-test" });
+    expect(withKey.ANTHROPIC_API_KEY).toBe("sk-ant-test");
+  });
 });
