@@ -363,3 +363,17 @@ export class DuplicateFunnelStepOrderError extends Error {
     this.name = "DuplicateFunnelStepOrderError";
   }
 }
+
+export class ArtifactNotFoundError extends Error {
+  constructor(artifactType: string, artifactId: string) {
+    super(`No ${artifactType} ${artifactId} found in this workspace`);
+    this.name = "ArtifactNotFoundError";
+  }
+}
+
+export class ArtifactVersionNotFoundError extends Error {
+  constructor(artifactType: string, artifactId: string, version: number) {
+    super(`No version ${version} recorded for ${artifactType} ${artifactId}`);
+    this.name = "ArtifactVersionNotFoundError";
+  }
+}
