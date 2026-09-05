@@ -46,3 +46,10 @@ export class BusinessMetricNotFoundError extends Error {
     this.name = "BusinessMetricNotFoundError";
   }
 }
+
+export class AssumptionNotFoundError extends Error {
+  constructor(assumptionId: string) {
+    super(`Assumption ${assumptionId} not found in this workspace`);
+    this.name = "AssumptionNotFoundError";
+  }
+}
