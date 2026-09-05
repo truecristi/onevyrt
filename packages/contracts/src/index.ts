@@ -21,3 +21,4 @@ export * from "./scenarios";
 export * from "./funnel-stages";
 export * from "./unit-economics";
 export * from "./financial-dashboard";
+export * from "./funnel-steps";
