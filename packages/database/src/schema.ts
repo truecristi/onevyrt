@@ -255,3 +255,33 @@ export const businessMetrics = pgTable(
     byWorkspace: index("business_metrics_workspace_id_idx").on(table.workspaceId),
   }),
 );
+
+/**
+ * PRD-BIZCORE-007 vertical slice: assumptions. The Assumption node from the
+ * spec's canonical graph (section 3.2), sitting between Metric and Model -
+ * a stated belief or input (e.g. "conversion rate is 2%") that later
+ * modeling/scenario work (Phase 4+) will reference and let users override
+ * per-scenario without touching the baseline. Not yet wired to models or
+ * scenarios, which are later phases.
+ */
+export const assumptions = pgTable(
+  "assumptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    statement: text("statement").notNull(),
+    description: text("description").notNull().default(""),
+    source: text("source").notNull().default(""),
+    confidence: text("confidence").notNull().default("medium"),
+    status: text("status").notNull().default("unvalidated"),
+    unit: text("unit").notNull().default(""),
+    value: doublePrecision("value"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("assumptions_workspace_id_idx").on(table.workspaceId),
+  }),
+);
