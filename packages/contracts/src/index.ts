@@ -15,3 +15,4 @@ export * from "./progress";
 export * from "./notes-bookmarks";
 export * from "./block-responses";
 export * from "./prerequisites";
+export * from "./lesson-applications";
