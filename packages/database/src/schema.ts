@@ -577,3 +577,55 @@ export const lessonProgress = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-CURRICULUM-004 vertical slice: notes and bookmarks. Same personal,
+ * not-workspace-scoped shape as enrollments/progress. Unlike every other
+ * table in this schema, notes and bookmarks are the first to support a
+ * real hard delete: a bookmark is inherently a toggle (there is no
+ * "history" value in keeping a removed one), and a personal note is the
+ * user's own scratch content, not a business or audit record - deleting
+ * your own note loses nothing anyone else needs. Every other table so
+ * far only supports status changes for exactly this reason; this one is
+ * a deliberate, scoped exception, not a new default.
+ */
+export const bookmarks = pgTable(
+  "bookmarks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byUser: index("bookmarks_user_id_idx").on(table.userId),
+    uniquePerUserAndLesson: unique("bookmarks_user_id_lesson_id_key").on(
+      table.userId,
+      table.lessonId,
+    ),
+  }),
+);
+
+/** Multiple notes per (user, lesson) are allowed - a running list of jottings, not a single field, matching how a learner would actually take notes while working through a lesson. */
+export const notes = pgTable(
+  "notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    lessonId: uuid("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byUserAndLesson: index("notes_user_id_lesson_id_idx").on(table.userId, table.lessonId),
+  }),
+);
