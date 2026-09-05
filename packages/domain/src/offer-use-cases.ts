@@ -1,15 +1,15 @@
 import { and, desc, eq } from "drizzle-orm";
 import type { Database } from "@onevyrt/database";
 import { schema, withTransaction } from "@onevyrt/database";
-import { assertCanReadWorkspace } from "@onevyrt/auth";
 import type { OfferStatus } from "@onevyrt/contracts";
-import { getMembership } from "./workspace-use-cases";
+import { requireWorkspaceMembership } from "./workspace-use-cases";
 import { OfferNotFoundError } from "./errors";
 
 /**
  * PRD-BIZCORE-004 vertical slice: offers. Same tenancy shape as the other
- * business-core use cases - re-derive membership, fail closed, scope every
- * write by workspaceId in the WHERE clause.
+ * business-core use cases - re-derive membership via
+ * requireWorkspaceMembership (ADR-0003), fail closed, scope every write by
+ * workspaceId in the WHERE clause.
  */
 
 export interface OfferRecord {
@@ -34,8 +34,7 @@ export interface CreateOfferInput {
 }
 
 export async function createOffer(db: Database, input: CreateOfferInput): Promise<OfferRecord> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   return withTransaction(db, async (tx) => {
     const [offer] = await tx
@@ -67,8 +66,7 @@ export interface ListOffersInput {
 }
 
 export async function listOffers(db: Database, input: ListOffersInput): Promise<OfferRecord[]> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   const rows = await db
     .select()
@@ -93,8 +91,7 @@ export interface UpdateOfferInput {
 
 /** A partial update, same semantics as updateCustomerProfile - except priceCents, which distinguishes "not provided" (undefined, unchanged) from "explicitly cleared" (null) since a price genuinely can be absent. */
 export async function updateOffer(db: Database, input: UpdateOfferInput): Promise<OfferRecord> {
-  const membership = await getMembership(db, input.workspaceId, input.actorUserId);
-  assertCanReadWorkspace(membership, input.workspaceId);
+  await requireWorkspaceMembership(db, input.workspaceId, input.actorUserId);
 
   return withTransaction(db, async (tx) => {
     const patch: Partial<typeof schema.offers.$inferInsert> = { updatedAt: new Date() };
