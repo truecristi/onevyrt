@@ -59,6 +59,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       name: parsed.data.name,
       description: parsed.data.description,
       currency: parsed.data.currency,
+      problemStatement: parsed.data.problemStatement,
+      desiredOutcome: parsed.data.desiredOutcome,
+      positioningStatement: parsed.data.positioningStatement,
+      valueProposition: parsed.data.valueProposition,
+      guarantee: parsed.data.guarantee,
+      riskReversal: parsed.data.riskReversal,
+      offerComponents: parsed.data.offerComponents,
+      bonuses: parsed.data.bonuses,
+      objections: parsed.data.objections,
       ...(parsed.data.priceCents !== undefined ? { priceCents: parsed.data.priceCents } : {}),
     });
     logger.info("offer created", {
