@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, clearSessionCookie } from "@/lib/session";
+import { getCurrentUser, logout } from "@/lib/session";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -7,6 +7,6 @@ export async function GET() {
 }
 
 export async function DELETE() {
-  clearSessionCookie();
+  await logout();
   return NextResponse.json({ ok: true });
 }

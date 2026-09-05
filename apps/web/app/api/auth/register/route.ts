@@ -6,6 +6,7 @@ import { logger, newCorrelationId } from "@onevyrt/observability";
 import { getServerContext } from "@/lib/server";
 import { requireCsrf } from "@/lib/csrf";
 import { setSessionCookie } from "@/lib/session";
+import { getClientIdentifier } from "@/lib/client-ip";
 
 // §11 rate limit: 5 registration attempts per IP per 15 minutes. In-memory
 // per §RateLimiter's own documented limitation (not durable, single
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
   }
 
-  const ip = request.headers.get("x-forwarded-for") ?? "unknown";
+  const ip = getClientIdentifier(request);
   if (!registerLimiter.check(`register:${ip}`)) {
     return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
   }
