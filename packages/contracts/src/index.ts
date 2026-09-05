@@ -33,3 +33,4 @@ export * from "./sketch-specifications";
 export * from "./ai-call-records";
 export * from "./scorecards";
 export * from "./weekly-reviews";
+export * from "./experiment-analysis";
