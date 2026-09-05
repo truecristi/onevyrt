@@ -104,3 +104,11 @@ registerFormula({
   version: 1,
   compute: (inputs) => requireInput(inputs, "conversions") / requireInput(inputs, "totalVisitors"),
 });
+
+/** Used by unit-economics-use-cases.ts's composite report - a common health check (>3 is typically considered healthy) that only makes sense once both halves exist. */
+registerFormula({
+  key: "ltv_to_cac_ratio",
+  version: 1,
+  compute: (inputs) =>
+    requireInput(inputs, "customerLifetimeValue") / requireInput(inputs, "customerAcquisitionCost"),
+});
