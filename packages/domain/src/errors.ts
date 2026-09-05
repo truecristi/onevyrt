@@ -439,3 +439,26 @@ export class ArtifactProposalNotPendingError extends Error {
     this.name = "ArtifactProposalNotPendingError";
   }
 }
+
+export class TaskProposalNotFoundError extends Error {
+  constructor(proposalId: string) {
+    super(`Task proposal ${proposalId} not found in this workspace`);
+    this.name = "TaskProposalNotFoundError";
+  }
+}
+
+/** Thrown when a task proposal's proposedTask doesn't validate against proposedTaskSchema - see task-proposal-use-cases.ts's createTaskProposal. */
+export class InvalidTaskProposalError extends Error {
+  constructor(reason: string) {
+    super(`Proposed task is invalid: ${reason}`);
+    this.name = "InvalidTaskProposalError";
+  }
+}
+
+/** Thrown when accept/reject is attempted on a task proposal that isn't still pending - see task-proposal-use-cases.ts. */
+export class TaskProposalNotPendingError extends Error {
+  constructor(proposalId: string, status: string) {
+    super(`Task proposal ${proposalId} is already ${status}, not pending`);
+    this.name = "TaskProposalNotPendingError";
+  }
+}
