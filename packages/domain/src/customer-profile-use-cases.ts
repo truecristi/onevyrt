@@ -5,10 +5,12 @@ import { requireWorkspaceMembership } from "./workspace-use-cases";
 import { CustomerProfileNotFoundError } from "./errors";
 
 /**
- * PRD-BIZCORE-003 vertical slice: customer profiles. Same tenancy shape as
- * business-core-use-cases.ts - every function re-derives membership via
- * requireWorkspaceMembership (ADR-0003) and fails closed, and every write
- * is scoped by workspaceId in the WHERE clause, not just the row's own id.
+ * PRD-BIZCORE-003 vertical slice: customer profiles, extended by
+ * PRD-BUILD-002 (Phase 5 second slice: customer and positioning tools).
+ * Same tenancy shape as business-core-use-cases.ts - every function
+ * re-derives membership via requireWorkspaceMembership (ADR-0003) and
+ * fails closed, and every write is scoped by workspaceId in the WHERE
+ * clause, not just the row's own id.
  */
 
 export interface CustomerProfileRecord {
@@ -18,6 +20,11 @@ export interface CustomerProfileRecord {
   description: string;
   painPoints: string;
   desiredOutcome: string;
+  emotionalConsequence: string;
+  uniqueMechanism: string;
+  proof: string;
+  callToAction: string;
+  positioningStatement: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +36,11 @@ export interface CreateCustomerProfileInput {
   description: string;
   painPoints: string;
   desiredOutcome: string;
+  emotionalConsequence?: string;
+  uniqueMechanism?: string;
+  proof?: string;
+  callToAction?: string;
+  positioningStatement?: string;
 }
 
 export async function createCustomerProfile(
@@ -46,6 +58,11 @@ export async function createCustomerProfile(
         description: input.description,
         painPoints: input.painPoints,
         desiredOutcome: input.desiredOutcome,
+        emotionalConsequence: input.emotionalConsequence ?? "",
+        uniqueMechanism: input.uniqueMechanism ?? "",
+        proof: input.proof ?? "",
+        callToAction: input.callToAction ?? "",
+        positioningStatement: input.positioningStatement ?? "",
       })
       .returning();
     if (!profile) throw new Error("Failed to create customer profile");
@@ -89,6 +106,11 @@ export interface UpdateCustomerProfileInput {
   description?: string;
   painPoints?: string;
   desiredOutcome?: string;
+  emotionalConsequence?: string;
+  uniqueMechanism?: string;
+  proof?: string;
+  callToAction?: string;
+  positioningStatement?: string;
 }
 
 /** A partial update - only fields actually present in the input are changed; omitted fields keep their current value. */
@@ -104,6 +126,15 @@ export async function updateCustomerProfile(
     if (input.description !== undefined) patch.description = input.description;
     if (input.painPoints !== undefined) patch.painPoints = input.painPoints;
     if (input.desiredOutcome !== undefined) patch.desiredOutcome = input.desiredOutcome;
+    if (input.emotionalConsequence !== undefined) {
+      patch.emotionalConsequence = input.emotionalConsequence;
+    }
+    if (input.uniqueMechanism !== undefined) patch.uniqueMechanism = input.uniqueMechanism;
+    if (input.proof !== undefined) patch.proof = input.proof;
+    if (input.callToAction !== undefined) patch.callToAction = input.callToAction;
+    if (input.positioningStatement !== undefined) {
+      patch.positioningStatement = input.positioningStatement;
+    }
 
     const [profile] = await tx
       .update(schema.customerProfiles)

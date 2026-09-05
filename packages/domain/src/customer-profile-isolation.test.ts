@@ -157,4 +157,49 @@ describe("customer profiles (Phase 2 second slice)", () => {
       }),
     ).rejects.toThrow(WorkspaceAccessDeniedError);
   });
+
+  it("builds out a customer profile's positioning fields, defaulting to empty", async () => {
+    const alice = await registerWithWorkspace("alice5@example.com", "Alice Co 5");
+
+    const bare = await createCustomerProfile(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      name: "Overwhelmed solo coach",
+      description: "",
+      painPoints: "",
+      desiredOutcome: "",
+    });
+    expect(bare.emotionalConsequence).toBe("");
+    expect(bare.uniqueMechanism).toBe("");
+    expect(bare.proof).toBe("");
+    expect(bare.callToAction).toBe("");
+    expect(bare.positioningStatement).toBe("");
+
+    const built = await createCustomerProfile(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      name: "Burned-out solo coach",
+      description: "",
+      painPoints: "Too many 1:1 calls",
+      desiredOutcome: "More free time",
+      emotionalConsequence: "Feels like they're failing their family",
+      uniqueMechanism: "Group leverage system",
+      proof: "200 coaches already switched",
+      callToAction: "Book a call",
+      positioningStatement: "For coaches who are done trading time for money",
+    });
+    expect(built.emotionalConsequence).toBe("Feels like they're failing their family");
+    expect(built.positioningStatement).toBe("For coaches who are done trading time for money");
+
+    const revised = await updateCustomerProfile(db, {
+      workspaceId: alice.workspace.id,
+      actorUserId: alice.user.id,
+      customerProfileId: built.id,
+      callToAction: "Join the waitlist",
+    });
+    expect(revised.callToAction).toBe("Join the waitlist");
+    // Untouched fields survive the update unchanged.
+    expect(revised.uniqueMechanism).toBe("Group leverage system");
+    expect(revised.positioningStatement).toBe("For coaches who are done trading time for money");
+  });
 });
