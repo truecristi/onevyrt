@@ -10,6 +10,7 @@ import {
   isSessionExpired,
 } from "@onevyrt/auth";
 import { EmailAlreadyRegisteredError, InvalidCredentialsError } from "./errors";
+import { isUniqueViolation } from "./db-errors";
 
 export interface RegisterInput {
   email: string;
@@ -21,18 +22,6 @@ export interface RegisterResult {
   user: { id: string; email: string };
   workspace: { id: string; name: string };
   sessionToken: string;
-}
-
-// Postgres unique_violation - see https://www.postgresql.org/docs/current/errcodes-appendix.html
-const PG_UNIQUE_VIOLATION = "23505";
-
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === PG_UNIQUE_VIOLATION
-  );
 }
 
 /**
