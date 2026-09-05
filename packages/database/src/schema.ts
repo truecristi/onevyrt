@@ -1427,3 +1427,67 @@ export const weeklyReviews = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-REVIEW-004 vertical slice: force assessments (README "Review and
+ * intelligence" -> "Constraint diagnosis", fourth slice of Phase 7;
+ * spec section 6.4's "Diagnostic and Seven Forces" - "for each force
+ * store current score 0-100, target, confidence, evidence, constraint,
+ * coach score, recommendations and reassessment date"). One row per
+ * workspace per force (the seven forces are a fixed enumerated set, not
+ * user-defined) - upsertForceAssessment (force-assessment-use-cases.ts)
+ * creates or revises the assessment for one force at a time, the same
+ * "one row per natural key" pattern as weekly_reviews and
+ * business_profiles.
+ *
+ * This slice deliberately implements only score/target/confidence/
+ * evidence/constraintNote/recommendations/reassessedAt from the spec's
+ * full field list - "coach score" (a second, coach-authored score
+ * alongside the self-reported one) is left for a later slice once a
+ * real coach-vs-founder review workflow exists, the same
+ * "deliberately small field scope, extended when a later slice needs
+ * more" convention as experiments' own table.
+ */
+export const forceAssessments = pgTable(
+  "force_assessments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    force: text("force").notNull(),
+    score: integer("score").notNull(),
+    target: integer("target"),
+    confidence: text("confidence").notNull().default("medium"),
+    evidence: text("evidence").notNull().default(""),
+    /** The specific limiting factor observed for this force - spec section 6.4's own "constraint" field, not a computed diagnosis (that's getConstraintDiagnosis, derived from every force's score). */
+    constraintNote: text("constraint_note").notNull().default(""),
+    recommendations: text("recommendations").notNull().default(""),
+    reassessedAt: timestamp("reassessed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    byWorkspace: index("force_assessments_workspace_id_idx").on(table.workspaceId),
+    uniquePerWorkspaceAndForce: unique("force_assessments_workspace_id_force_key").on(
+      table.workspaceId,
+      table.force,
+    ),
+    forceCheck: check(
+      "force_assessments_force_check",
+      sql`${table.force} IN ('owner_psychology', 'vision_planning', 'sales_marketing', 'people_culture', 'operations_systems', 'finance_measurement', 'customer_experience')`,
+    ),
+    confidenceCheck: check(
+      "force_assessments_confidence_check",
+      sql`${table.confidence} IN ('low', 'medium', 'high')`,
+    ),
+    scoreRangeCheck: check(
+      "force_assessments_score_range_check",
+      sql`${table.score} BETWEEN 0 AND 100`,
+    ),
+    targetRangeCheck: check(
+      "force_assessments_target_range_check",
+      sql`${table.target} IS NULL OR ${table.target} BETWEEN 0 AND 100`,
+    ),
+  }),
+);
