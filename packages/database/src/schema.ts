@@ -169,6 +169,20 @@ export const customerProfiles = pgTable(
     desiredOutcome: text("desired_outcome").notNull().default(""),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    // PRD-BUILD-002 (Phase 5 second slice: customer and positioning
+    // tools, spec section 6.7 "Offer, positioning and message system" -
+    // "capture ideal customer, problem, emotional consequence, desired
+    // outcome, ... unique mechanism, proof, ... call to action").
+    // Additive columns with defaults - no behavior change for profiles
+    // created before this slice. These are how the business should
+    // talk to *this* customer segment specifically - distinct from
+    // offers.positioningStatement (PRD-BUILD-001), which positions one
+    // specific product, not a whole audience.
+    emotionalConsequence: text("emotional_consequence").notNull().default(""),
+    uniqueMechanism: text("unique_mechanism").notNull().default(""),
+    proof: text("proof").notNull().default(""),
+    callToAction: text("call_to_action").notNull().default(""),
+    positioningStatement: text("positioning_statement").notNull().default(""),
   },
   (table) => ({
     byWorkspace: index("customer_profiles_workspace_id_idx").on(table.workspaceId),
