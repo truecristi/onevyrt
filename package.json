@@ -1,0 +1,37 @@
+{
+  "name": "onevyrt",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @onevyrt/web dev",
+    "build": "pnpm --filter @onevyrt/web build",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:e2e": "playwright test",
+    "db:migrate": "pnpm --filter @onevyrt/database migrate",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "@onevyrt/database": "workspace:*",
+    "@onevyrt/domain": "workspace:*",
+    "@onevyrt/testing": "workspace:*",
+    "@playwright/test": "1.49.1",
+    "drizzle-orm": "^0.36.1",
+    "eslint": "^9.14.0",
+    "tsx": "^4.19.2",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.13.0"
+  }
+}

@@ -1,0 +1,62 @@
+name: Deploy
+
+# ADR-0021: deploys to Vercel once CI is green on main. A separate
+# workflow from ci.yml on purpose - a deploy failure should never be
+# confused with a build-and-test failure, and this workflow has nothing
+# useful to do on a PR (draft PRs never deploy anything).
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only deploy a commit whose CI workflow actually succeeded - never a
+    # commit CI is still running against or has already failed.
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Check for VERCEL_TOKEN
+        id: check-token
+        run: |
+          if [ -n "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::VERCEL_TOKEN is not set - skipping deploy. See docs/deployment/vercel-setup.md."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.check-token.outputs.present == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Install Vercel CLI
+        if: steps.check-token.outputs.present == 'true'
+        run: npm install --global vercel@latest
+
+      - name: Deploy to Vercel (production)
+        if: steps.check-token.outputs.present == 'true'
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Deploying is not the same as being healthy - checked separately,
+      # per apps/web/app/api/health/route.ts's own real (non-hardcoded)
+      # process/database health check.
+      - name: Verify /api/health on the live deployment
+        if: steps.check-token.outputs.present == 'true'
+        run: |
+          status=$(curl -s -o /tmp/health.json -w "%{http_code}" "${{ steps.deploy.outputs.url }}/api/health")
+          cat /tmp/health.json
+          if [ "$status" != "200" ]; then
+            echo "::error::Health check returned HTTP $status after deploy"
+            exit 1
+          fi

@@ -840,17 +840,30 @@ Unless a separate `LICENSE` file states otherwise, this repository and its conte
 
 ## Current status
 
-ONEVYRT is in the architecture, audit and controlled-rebuild stage.
+Phases 0-8 of the roadmap above are complete: identity and tenancy,
+core business data, the learning system, numbers and modeling, build
+and execution, AI coaching, review and intelligence, and a migration/
+hardening pass, each shipped as its own reviewed, tested pull request.
 
-The immediate priorities are:
+**This is not a production launch.** The backend and API surface are
+substantial and thoroughly tested (a real Postgres-backed test suite in
+CI on every push, tenant isolation enforced and automatically
+guarded, an AI evaluation harness gating prompt regressions), but there
+is no deployed environment, almost no rendered user interface beyond
+the Phase 0/1 scaffold, no external security audit, and several
+operational decisions (a real deployment target, a backup schedule)
+remain open. See
+[ADR-0022](docs/decisions/ADR-0022-launch-readiness-review.md) for the
+complete, itemized readiness review against spec §44's release-gate
+checklist and §46's minimum critical journeys, including exactly what
+this repository recommends before treating this as launch-ready.
 
-1. Commit the master specification.
-2. Preserve the existing application as a reference.
-3. Complete the feature and content parity inventory.
-4. Establish the clean TypeScript foundation.
-5. Implement and verify one vertical slice at a time.
-6. Migrate only after replacement behavior has been tested.
-
-Do not begin by recreating every screen.
-
-Begin by establishing the contracts, domain model, security boundaries, calculation rules and measurable transformation loop that every screen depends on.
+Do not begin the next phase of work by recreating every screen from the
+legacy inventory (`docs/parity/`) - that inventory is transcribed from
+the specification's own appendices, not verified against real legacy
+behavior, since the legacy source no longer exists in this repository
+(see ADR-0018). The contracts, domain model, security boundaries,
+calculation rules and measurable transformation loop that every screen
+will depend on are what Phases 0-8 actually built; the real
+Today/Learn/Build/Execute/Review product UI is the next major body of
+work.
