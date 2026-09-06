@@ -36,3 +36,4 @@ export * from "./weekly-reviews";
 export * from "./experiment-analysis";
 export * from "./force-assessments";
 export * from "./progress-summary";
+export * from "./recommendations";
