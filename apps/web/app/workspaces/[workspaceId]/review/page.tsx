@@ -104,6 +104,18 @@ export default async function ReviewPage({ params }: { params: { workspaceId: st
           </ul>
         )}
       </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
+        <p className="text-sm">
+          <Link
+            href={`/workspaces/${params.workspaceId}/review/decisions`}
+            className="text-blue-600 hover:underline"
+          >
+            Decision log &rarr;
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }
