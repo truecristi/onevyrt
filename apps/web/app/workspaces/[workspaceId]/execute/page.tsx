@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listTasks } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
@@ -114,6 +115,16 @@ export default async function ExecutePage({ params }: { params: { workspaceId: s
       )}
 
       <CreateTaskForm workspaceId={params.workspaceId} />
+
+      <section className="flex flex-col gap-2 border-t border-gray-200 pt-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
+        <Link
+          href={`/workspaces/${params.workspaceId}/execute/task-proposals`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          AI task proposals &rarr;
+        </Link>
+      </section>
     </div>
   );
 }
