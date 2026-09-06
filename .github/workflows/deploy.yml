@@ -28,7 +28,7 @@ jobs:
             echo "::notice::VERCEL_TOKEN is not set - skipping deploy. See docs/deployment/vercel-setup.md."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.check-token.outputs.present == 'true'
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
