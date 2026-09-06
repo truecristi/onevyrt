@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listWeeklyReviews } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
@@ -94,6 +95,46 @@ export default async function ReviewPage({ params }: { params: { workspaceId: st
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="flex flex-col gap-2 border-t border-gray-200 pt-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/financials`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          View financial results &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/decisions`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Decision log &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/evidence`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Evidence &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/experiment-analysis`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Experiment analysis &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/forces`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Seven Forces &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/progress`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Progress &rarr;
+        </Link>
       </section>
     </div>
   );

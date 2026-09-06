@@ -12,10 +12,12 @@ import {
   getPromptTemplate,
   runPrompt,
   selectDefaultProvider,
+  createDeterministicProvider,
   AiProviderError,
   AiRateLimitExceededError,
   PromptOutputValidationError,
   DEFAULT_ANTHROPIC_MODEL,
+  type AiProvider,
   type ProposeTaskOutput,
 } from "@onevyrt/ai";
 import { logger, newCorrelationId } from "@onevyrt/observability";
@@ -25,6 +27,41 @@ import { requireCsrf } from "@/lib/csrf";
 
 interface RouteParams {
   params: { workspaceId: string };
+}
+
+/**
+ * selectDefaultProvider() falls back to the deterministic adapter when no
+ * ANTHROPIC_API_KEY is configured, but that adapter's default output is a
+ * plain echo, which isn't the JSON envelope propose_task's outputSchema
+ * requires - so a keyless deployment would always 502 here. Rather than
+ * leave the feature dead without a key, this returns a deterministic
+ * provider whose response is a *labeled placeholder* proposal built from
+ * the user's own instruction: the whole propose -> review -> accept flow
+ * stays exercisable (sandbox, CI, and any keyless install), the rationale
+ * says plainly it's a placeholder and how to get real proposals, and
+ * recordAiCall still attributes it to the "deterministic" provider - never
+ * a silent stand-in for a real model. With a key set, the real Anthropic
+ * adapter is used untouched.
+ */
+function resolveProposalProvider(instruction: string): AiProvider {
+  const provider = selectDefaultProvider();
+  if (provider.id !== "deterministic") {
+    return provider;
+  }
+  return createDeterministicProvider({
+    respond: () =>
+      JSON.stringify({
+        task: {
+          title: instruction.slice(0, 200),
+          description: "",
+          priority: "medium",
+        },
+        rationale:
+          "Placeholder proposal echoed from your instruction because no AI " +
+          "provider is configured. Set ANTHROPIC_API_KEY to get proposals " +
+          "grounded in your workspace context.",
+      }),
+  });
 }
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
@@ -92,7 +129,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       throw new Error("propose_task prompt template is not registered");
     }
 
-    const provider = selectDefaultProvider();
+    const provider = resolveProposalProvider(parsed.data.instruction);
     const { output, completion } = await runPrompt(
       provider,
       template,
