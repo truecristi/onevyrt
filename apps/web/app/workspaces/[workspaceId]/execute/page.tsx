@@ -182,6 +182,28 @@ export default async function ExecutePage({ params }: { params: { workspaceId: s
         )}
         <CreateExperimentForm workspaceId={params.workspaceId} />
       </section>
+
+      <section className="flex flex-col gap-2 border-t border-gray-200 pt-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
+        <Link
+          href={`/workspaces/${params.workspaceId}/execute/projects`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Projects &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/execute/launches`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Launches &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/execute/task-proposals`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          AI task proposals &rarr;
+        </Link>
+      </section>
     </div>
   );
 }

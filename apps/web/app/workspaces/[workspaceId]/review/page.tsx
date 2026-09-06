@@ -43,14 +43,6 @@ export default async function ReviewPage({ params }: { params: { workspaceId: st
           scorecard that week. Experiment analysis, constraint diagnosis and progress trends are
           coming to Review in later slices.
         </p>
-        <p className="mt-2 text-sm">
-          <Link
-            href={`/workspaces/${params.workspaceId}/review/financials`}
-            className="text-blue-600 hover:underline"
-          >
-            View financial results &rarr;
-          </Link>
-        </p>
       </div>
 
       <CreateWeeklyReviewForm workspaceId={params.workspaceId} />
@@ -105,16 +97,44 @@ export default async function ReviewPage({ params }: { params: { workspaceId: st
         )}
       </section>
 
-      <section className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2 border-t border-gray-200 pt-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
-        <p className="text-sm">
-          <Link
-            href={`/workspaces/${params.workspaceId}/review/decisions`}
-            className="text-blue-600 hover:underline"
-          >
-            Decision log &rarr;
-          </Link>
-        </p>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/financials`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          View financial results &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/decisions`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Decision log &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/evidence`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Evidence &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/experiment-analysis`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Experiment analysis &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/forces`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Seven Forces &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/progress`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Progress &rarr;
+        </Link>
       </section>
     </div>
   );
