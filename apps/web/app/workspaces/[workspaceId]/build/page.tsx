@@ -127,6 +127,18 @@ export default async function BuildPage({ params }: { params: { workspaceId: str
         >
           Funnel builder &rarr;
         </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/build/assumptions`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Assumptions &rarr;
+        </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/build/scenarios`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Scenarios &rarr;
+        </Link>
       </section>
     </div>
   );
