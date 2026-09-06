@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listWeeklyReviews } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
@@ -94,6 +95,18 @@ export default async function ReviewPage({ params }: { params: { workspaceId: st
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
+        <p className="text-sm">
+          <Link
+            href={`/workspaces/${params.workspaceId}/review/experiment-analysis`}
+            className="text-blue-600 hover:underline"
+          >
+            Experiment analysis &rarr;
+          </Link>
+        </p>
       </section>
     </div>
   );
