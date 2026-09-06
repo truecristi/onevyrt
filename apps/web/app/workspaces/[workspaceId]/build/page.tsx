@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { listOffers } from "@onevyrt/domain";
+import { listOffers, listCustomerProfiles } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
 import { getServerContext } from "@/lib/server";
 import { getCurrentUser } from "@/lib/session";
 import { CreateOfferForm } from "./create-offer-form";
+import { CreateCustomerProfileForm } from "./create-customer-profile-form";
 import { formatPrice } from "./format";
 
 /**
@@ -15,7 +16,9 @@ import { formatPrice } from "./format";
  * deterministic calculation (unit economics, on each offer's detail
  * page). Funnels, customer profiles, scenarios and artifact versioning
  * each have a tested domain layer already and are deferred to their own
- * later Build slices rather than half-built here.
+ * later Build slices rather than half-built here. The customer-profiles
+ * section (the "Define" stage - who you sell to) was added in a later
+ * slice on the same page; funnels and scenarios are still to come.
  */
 
 const STATUS_STYLES: Record<string, string> = {
@@ -31,15 +34,19 @@ export default async function BuildPage({ params }: { params: { workspaceId: str
   }
 
   const { db } = getServerContext();
-  const offers = await listOffers(db, { workspaceId: params.workspaceId, actorUserId: user.id });
+  const actorUserId = user.id;
+  const [offers, customerProfiles] = await Promise.all([
+    listOffers(db, { workspaceId: params.workspaceId, actorUserId }),
+    listCustomerProfiles(db, { workspaceId: params.workspaceId, actorUserId }),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Build</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Your offers - what you sell, its positioning, and its unit economics. Funnels, customer
-          profiles and scenarios are coming to Build in later slices.
+          Your offers and customer profiles - what you sell and who you sell it to. Funnels and
+          scenarios are coming to Build in later slices.
         </p>
       </div>
 
@@ -79,6 +86,37 @@ export default async function BuildPage({ params }: { params: { workspaceId: str
         )}
 
         <CreateOfferForm workspaceId={params.workspaceId} />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+          Customer profiles
+        </h2>
+
+        {customerProfiles.length === 0 ? (
+          <EmptyState
+            title="No customer profiles yet"
+            description="Define who you're selling to - their pain, desired outcome, and how you're positioned for them."
+          />
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {customerProfiles.map((profile) => (
+              <li key={profile.id}>
+                <Link
+                  href={`/workspaces/${params.workspaceId}/build/customers/${profile.id}`}
+                  className="block rounded-md border border-gray-500 px-4 py-3 hover:border-blue-600"
+                >
+                  <p className="font-medium text-gray-900">{profile.name}</p>
+                  {profile.description !== "" && (
+                    <p className="text-sm text-gray-600">{profile.description}</p>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <CreateCustomerProfileForm workspaceId={params.workspaceId} />
       </section>
     </div>
   );
