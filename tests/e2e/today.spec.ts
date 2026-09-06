@@ -34,7 +34,7 @@ test("a fresh workspace's Today page shows real, empty scorecard stats and an ho
   await expect(page.getByText("No recommendations yet")).toBeVisible();
 });
 
-test("Learn, Build, Execute and Review are real links that honestly say they aren't built yet", async ({
+test("Build, Execute and Review are real links that honestly say they aren't built yet; Learn has a real page", async ({
   page,
 }) => {
   const email = uniqueEmail();
@@ -47,7 +47,23 @@ test("Learn, Build, Execute and Review are real links that honestly say they are
   await page.getByRole("link", { name: /Nav Test Workspace/ }).click();
   await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
 
-  for (const destination of ["Learn", "Build", "Execute", "Review"]) {
+  // Learn got a real page this slice (tests/e2e/learn.spec.ts covers its
+  // actual browse-enroll-learn loop) - just confirm it's a real page here,
+  // not the shared "isn't built yet" placeholder the other three still
+  // are. Not asserting on an empty catalog: curriculum content is
+  // platform-wide, not workspace-scoped (curriculum-use-cases.ts), so
+  // whether any programs are published is global state this test
+  // shouldn't depend on - other specs (learn.spec.ts) publish one of
+  // their own, and fullyParallel test order isn't guaranteed.
+  await page.getByRole("link", { name: "Learn", exact: true }).click();
+  await expect(page).toHaveURL(/\/learn$/);
+  await expect(page.getByRole("heading", { name: "Learn" })).toBeVisible();
+  await expect(page.getByText("Learn isn't built yet")).not.toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
+
+  for (const destination of ["Build", "Execute", "Review"]) {
     await page.getByRole("link", { name: destination, exact: true }).click();
     // Wait for the route itself to change before asserting on the new
     // page's text - a real navigation checkpoint, not just relying on

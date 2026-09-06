@@ -11,9 +11,21 @@ importers:
       '@eslint/js':
         specifier: ^9.14.0
         version: 9.39.5
+      '@onevyrt/database':
+        specifier: workspace:*
+        version: link:packages/database
+      '@onevyrt/domain':
+        specifier: workspace:*
+        version: link:packages/domain
+      '@onevyrt/testing':
+        specifier: workspace:*
+        version: link:packages/testing
       '@playwright/test':
         specifier: 1.49.1
         version: 1.49.1
+      drizzle-orm:
+        specifier: ^0.36.1
+        version: 0.36.4(@types/pg@8.23.1)(@types/react@18.3.31)(pg@8.23.0)(react@18.3.1)
       eslint:
         specifier: ^9.14.0
         version: 9.39.5(jiti@1.21.7)
@@ -32,6 +44,9 @@ importers:
       prettier:
         specifier: ^3.3.3
         version: 3.9.6
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.13
       typescript:
         specifier: ^5.6.3
         version: 5.9.3

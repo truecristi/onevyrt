@@ -38,6 +38,18 @@ export async function postJson<T>(url: string, body: unknown): Promise<ApiResult
   return { ok: response.ok, status: response.status, data };
 }
 
+/** PATCHes a CSRF-protected JSON body - same handshake as postJson, e.g. lesson progress updates. */
+export async function patchJson<T>(url: string, body: unknown): Promise<ApiResult<T>> {
+  const csrfToken = await getCsrfToken();
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "content-type": "application/json", [CSRF_HEADER]: csrfToken },
+    body: JSON.stringify(body),
+  });
+  const data = (await response.json()) as T;
+  return { ok: response.ok, status: response.status, data };
+}
+
 /** DELETEs a CSRF-protected endpoint (currently just logout) - same handshake as postJson, no body. */
 export async function deleteWithCsrf<T>(url: string): Promise<ApiResult<T>> {
   const csrfToken = await getCsrfToken();
