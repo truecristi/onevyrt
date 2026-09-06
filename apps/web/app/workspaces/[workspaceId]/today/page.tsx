@@ -54,12 +54,20 @@ export default async function TodayPage({ params }: { params: { workspaceId: str
             </div>
           ))}
         </div>
-        <Link
-          href={`/workspaces/${params.workspaceId}/today/goals`}
-          className="mt-3 inline-block text-sm text-blue-700 hover:underline"
-        >
-          Manage goals &rarr;
-        </Link>
+        <div className="mt-3 flex flex-wrap gap-4">
+          <Link
+            href={`/workspaces/${params.workspaceId}/today/goals`}
+            className="text-sm text-blue-700 hover:underline"
+          >
+            Manage goals &rarr;
+          </Link>
+          <Link
+            href={`/workspaces/${params.workspaceId}/today/metrics`}
+            className="text-sm text-blue-700 hover:underline"
+          >
+            Track metrics &rarr;
+          </Link>
+        </div>
       </section>
 
       <section>
