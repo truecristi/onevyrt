@@ -155,7 +155,13 @@ jobs:
         run: pnpm build
 
       - name: Start production server
-        run: pnpm --filter @onevyrt/web start -- -p 3100 &
+        # `pnpm --filter @onevyrt/web start -- -p 3100` mangles into
+        # `next start -- -p 3100` (a literal `--` reaching next's own
+        # CLI, which then tries to treat `-p` as a project directory) -
+        # confirmed locally and in this job's own first run after the
+        # AUTH_SECRET fix. `pnpm exec` calls next directly, skipping the
+        # start script (and its arg-passing) entirely.
+        run: nohup pnpm --filter @onevyrt/web exec next start -p 3100 > /tmp/next-start.log 2>&1 &
 
       - name: Wait for server to be ready
         run: |
@@ -167,6 +173,7 @@ jobs:
             sleep 1
           done
           echo "::error::Server never became ready"
+          cat /tmp/next-start.log || true
           exit 1
 
       - name: Run Playwright tests
