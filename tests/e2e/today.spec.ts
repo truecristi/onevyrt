@@ -43,7 +43,7 @@ test("a fresh workspace's Today page shows real, empty scorecard stats and an ho
   await expect(page.getByText("No recommendations yet")).toBeVisible();
 });
 
-test("Execute and Review are real links that honestly say they aren't built yet; Learn and Build have real pages", async ({
+test("Review is a real link that honestly says it isn't built yet; Learn, Build and Execute have real pages", async ({
   page,
 }) => {
   const email = uniqueEmail();
@@ -79,12 +79,19 @@ test("Execute and Review are real links that honestly say they aren't built yet;
   await page.goBack();
   await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
 
-  for (const destination of ["Execute", "Review"]) {
-    await page.getByRole("link", { name: destination, exact: true }).click();
-    // Wait for the route itself to change before asserting on the new
-    // page's text - a real navigation checkpoint, not just relying on
-    // the text assertion's own polling to notice the DOM changed.
-    await expect(page).toHaveURL(new RegExp(`/${destination.toLowerCase()}$`));
-    await expect(page.getByText(`${destination} isn't built yet`)).toBeVisible();
-  }
+  // Execute has a real page now too (tests/e2e/execute.spec.ts covers its
+  // task journey); a fresh workspace shows its own workspace-scoped empty
+  // state, safe to assert.
+  await page.getByRole("link", { name: "Execute", exact: true }).click();
+  await expect(page).toHaveURL(/\/execute$/);
+  await expect(page.getByRole("heading", { name: "Execute" })).toBeVisible();
+  await expect(page.getByText("No tasks yet")).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
+
+  // Review is the last remaining "isn't built yet" placeholder.
+  await page.getByRole("link", { name: "Review", exact: true }).click();
+  await expect(page).toHaveURL(/\/review$/);
+  await expect(page.getByText("Review isn't built yet")).toBeVisible();
 });
