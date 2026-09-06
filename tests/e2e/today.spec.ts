@@ -49,6 +49,13 @@ test("Learn, Build, Execute and Review are real links that honestly say they are
 
   for (const destination of ["Learn", "Build", "Execute", "Review"]) {
     await page.getByRole("link", { name: destination, exact: true }).click();
+    // Wait for the route itself to change before asserting on the new
+    // page's text - on a slower CI runner, asserting on text alone
+    // (even with its own timeout) proved flaky the first time this ran
+    // in CI: it can start polling for the old page's DOM to disappear
+    // before Next's client-side navigation has actually committed the
+    // new route, rather than genuinely waiting for the new page.
+    await expect(page).toHaveURL(new RegExp(`/${destination.toLowerCase()}$`));
     await expect(page.getByText(`${destination} isn't built yet`)).toBeVisible();
   }
 });
