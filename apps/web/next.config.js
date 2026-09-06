@@ -25,6 +25,14 @@ const nextConfig = {
   // actual page markup/script origins to write a meaningful policy
   // against (see docs/decisions - this is intentionally not invented
   // speculatively).
+  //
+  // Strict-Transport-Security added in a later Phase 9 security pass,
+  // once ADR-0021 actually named a real HTTPS deployment target (Vercel
+  // terminates TLS by default) - not meaningful to set before there was
+  // a real deployment to apply it to. `preload` is left off deliberately:
+  // that requires submission to browsers' HSTS preload list, a one-way
+  // decision this session shouldn't make unilaterally for a domain
+  // (onevyrt.masteryresearch.com) it doesn't control DNS for.
   async headers() {
     return [
       {
@@ -34,6 +42,10 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
         ],
       },
     ];
