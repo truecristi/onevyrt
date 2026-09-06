@@ -148,8 +148,12 @@ yet.
 
 ## A documentation-debt gap worth naming honestly
 
-Several ADRs remain formally **Proposed** despite the system they cover
-having since been fully built and shipped: ADR-0005 (domain command/
+**Closed in a later PR this same session** (this section is left
+unedited below as the honest record of what this review found at the
+time - see "Addendum" at the end of this document for the closing PR
+and what changed): several ADRs remained formally **Proposed** despite
+the system they cover having since been fully built and shipped:
+ADR-0005 (domain command/
 query conventions - the pattern every one of the 39+ use-case files in
 `packages/domain` actually follows consistently, but the ADR recording
 that convention was never updated from its Phase-1-era stub),
@@ -201,3 +205,13 @@ delegation - see PR description for the slice that produced this
 review). This document represents this session's own honest assessment,
 not a substitute for the repository owner's independent judgment about
 whether to launch.
+
+## Addendum (post-roadmap work)
+
+The "documentation-debt gap" section above is left unedited as the
+honest record of what this review found when it was written. It was
+closed in a later PR the same session: ADR-0005, ADR-0006, and ADR-0009
+were reviewed against what Phases 2-5 actually shipped and updated from
+"Proposed" to "Accepted" with evidence cited from the real code (see
+each ADR's own updated text). None of the underlying systems changed -
+only the paper trail caught up to what the code had already decided.
