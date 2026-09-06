@@ -59,11 +59,52 @@ jobs:
       - name: Production build
         run: pnpm build
 
+  # Dependency and secret scanning (Phase 9, closing the one release gate
+  # spec §44 flagged as entirely missing - see ADR-0022). Deliberately a
+  # separate job from build-and-test: it reports real, pre-existing
+  # findings (see docs/security/dependency-audit-findings.md) that are
+  # tracked as their own follow-up work rather than fixed by rushing a
+  # major-version bump here, so this job must not block merges on findings
+  # nobody has reviewed yet. `continue-on-error` keeps it visible (still
+  # runs, still shows red/green on the check) without gating the PR - flip
+  # it off once the tracked next.js/drizzle-orm upgrades land and the
+  # baseline is actually clean.
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Dependency audit (informational - see docs/security/dependency-audit-findings.md)
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
+
+      - name: Secret scan (gitleaks)
+        # Installed directly from the OSS gitleaks release rather than the
+        # gitleaks-action marketplace action, which requires a paid license
+        # for organization-owned repos - the CLI itself is MIT-licensed and
+        # free regardless of repo ownership.
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks detect --source . --redact -v
+
   # §44's full release-gate list (tenant-isolation suite as its own job,
-  # critical E2E, migration rehearsal, dependency/secret scanning) is
-  # deliberately not all wired in yet - the tenant-isolation coverage that
-  # exists today already runs as part of `pnpm test` above
-  # (packages/domain/src/auth-workspace-isolation.test.ts). The rest gets
-  # added as the phases that need them (E2E once there's a UI, migration
-  # rehearsal once there's a second migration, dependency scanning as a
-  # fast follow) rather than stubbed as no-op jobs here.
+  # critical E2E, migration rehearsal) is otherwise still not all wired in
+  # - the tenant-isolation coverage that exists today already runs as part
+  # of `pnpm test` above (packages/domain/src/auth-workspace-isolation.test.ts).
+  # The rest gets added as the phases that need them (E2E once there's a
+  # UI, migration rehearsal once there's a second migration) rather than
+  # stubbed as no-op jobs here.
