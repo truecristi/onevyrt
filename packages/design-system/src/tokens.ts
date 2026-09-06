@@ -10,7 +10,13 @@ export const color = {
   background: "#ffffff",
   backgroundMuted: "#f5f5f7",
   surface: "#ffffff",
-  border: "#d2d2d7",
+  // Phase 8 accessibility audit finding: the original #d2d2d7 was only
+  // 1.51:1 against white, failing WCAG 2.2 SC 1.4.11's 3:1 requirement
+  // for a UI component's visible boundary (a border only decorative
+  // elements can ignore, but a border marking an actual control's edge
+  // cannot). #8e8e93 (Apple's systemGray, staying within this token
+  // file's own "Apple-inspired" palette) clears it at ~3.3:1 on white.
+  border: "#8e8e93", // ~3.3:1 on white (SC 1.4.11 UI component contrast)
   textPrimary: "#1d1d1f", // ~15.8:1 on white
   textSecondary: "#6e6e73", // ~4.9:1 on white
   accent: "#0071e3", // ~4.6:1 on white at normal text size

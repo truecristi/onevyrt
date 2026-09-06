@@ -6,9 +6,17 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string;
 }
 
+/**
+ * Phase 8 accessibility audit finding: border-gray-300 (1.47:1 against
+ * white) and placeholder:text-gray-400 (2.54:1) both failed WCAG 2.2 AA -
+ * SC 1.4.11 "Non-text Contrast" requires 3:1 for a form field's border,
+ * and SC 1.4.3 requires 4.5:1 for placeholder text. gray-500 is the
+ * lightest step in this palette that clears both (4.83:1 against white),
+ * so both use it now instead of two different failing shades.
+ */
 const fieldBase =
-  "w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 " +
-  "placeholder:text-gray-400 focus-visible:outline focus-visible:outline-2 " +
+  "w-full rounded-md border border-gray-500 px-3 py-2 text-sm text-gray-900 " +
+  "placeholder:text-gray-500 focus-visible:outline focus-visible:outline-2 " +
   "focus-visible:outline-offset-2 focus-visible:outline-blue-600";
 
 /** Label, hint and error are all wired to the input via id/aria - never colour alone (§12). */
