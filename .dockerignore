@@ -1,0 +1,29 @@
+# Keep the build context lean and - critically - keep secrets and local
+# state out of the image. All configuration is injected at run time via
+# `docker run --env-file`; no .env file is ever copied in.
+
+# Secrets / local environment (never bake into an image)
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output (reinstalled/rebuilt inside the image)
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+
+# VCS and CI
+.git
+.github
+
+# Test/report artifacts
+**/coverage
+**/playwright-report
+**/test-results
+**/*.log
+
+# Editor / OS cruft
+.vscode
+.idea
+**/.DS_Store
