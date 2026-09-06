@@ -23,9 +23,10 @@ stored in `docs/decisions/`."
 | [0016](ADR-0016-analytics-taxonomy-consent.md)               | Analytics taxonomy and consent controls                       | Proposed                     |
 | [0017](ADR-0017-feature-flags-staged-rollout.md)             | Feature flags, staged rollout and emergency disablement       | Proposed                     |
 | [0018](ADR-0018-legacy-extraction-migration-verification.md) | Legacy extraction, transformation and migration verification  | Proposed                     |
-| [0019](ADR-0019-backup-restore-disaster-recovery.md)         | Backup, restore and disaster recovery                         | Proposed                     |
+| [0019](ADR-0019-backup-restore-disaster-recovery.md)         | Backup, restore and disaster recovery                         | Partially accepted           |
 | [0020](ADR-0020-internationalisation-locale-currency.md)     | Internationalisation, locale, currency and time-zone handling | Proposed                     |
 | [0021](ADR-0021-deployment-and-environments.md)              | Deployment and environments                                   | Proposed - blocked on access |
+| [0022](ADR-0022-launch-readiness-review.md)                  | Launch readiness review                                       | Accepted (status report)     |
 
 "Proposed" means named and scoped per §36's requirement to catalogue these
 before broad feature development, not decided - each becomes "Accepted"
