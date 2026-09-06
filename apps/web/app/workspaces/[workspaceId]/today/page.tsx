@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getWorkspaceScorecard, getRecommendations } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
 import { getServerContext } from "@/lib/server";
@@ -52,6 +53,26 @@ export default async function TodayPage({ params }: { params: { workspaceId: str
               <p className="text-xs text-gray-500">{stat.label}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-4">
+          <Link
+            href={`/workspaces/${params.workspaceId}/today/goals`}
+            className="text-sm text-blue-700 hover:underline"
+          >
+            Manage goals &rarr;
+          </Link>
+          <Link
+            href={`/workspaces/${params.workspaceId}/today/metrics`}
+            className="text-sm text-blue-700 hover:underline"
+          >
+            Track metrics &rarr;
+          </Link>
+          <Link
+            href={`/workspaces/${params.workspaceId}/today/profile`}
+            className="text-sm text-blue-700 hover:underline"
+          >
+            Business profile &rarr;
+          </Link>
         </div>
       </section>
 
