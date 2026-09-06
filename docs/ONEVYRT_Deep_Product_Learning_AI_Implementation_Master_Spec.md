@@ -144,7 +144,7 @@ Technical detail → More technical detail → Product benefit3. Colour system
 
 The website should use a very limited palette.
 
-:root { /* Page surfaces _/ --page-light: #f5f5f7; --surface-light: #ffffff; --page-dark: #000000; --surface-dark: #161617; --surface-elevated: #1d1d1f; /_ Text _/ --text-light-primary: #1d1d1f; --text-light-secondary: #6e6e73; --text-dark-primary: #f5f5f7; --text-dark-secondary: #a1a1a6; /_ Controls _/ --accent: #0071e3; --accent-hover: #0077ed; --border-light: rgba(0, 0, 0, 0.10); --border-dark: rgba(255, 255, 255, 0.14); /_ Highlight gradients */ --pro-gradient: linear-gradient( 90deg, #f5f5f7 0%, #a7b5c8 28%, #ffffff 50%, #967cff 72%, #ff8a62 100% ); }
+:root { /* Page surfaces */ --page-light: #f5f5f7; --surface-light: #ffffff; --page-dark: #000000; --surface-dark: #161617; --surface-elevated: #1d1d1f; /* Text */ --text-light-primary: #1d1d1f; --text-light-secondary: #6e6e73; --text-dark-primary: #f5f5f7; --text-dark-secondary: #a1a1a6; /* Controls */ --accent: #0071e3; --accent-hover: #0077ed; --border-light: rgba(0, 0, 0, 0.10); --border-dark: rgba(255, 255, 255, 0.14); /* Highlight gradients */ --pro-gradient: linear-gradient( 90deg, #f5f5f7 0%, #a7b5c8 28%, #ffffff 50%, #967cff 72%, #ff8a62 100% ); }
 
 Important rules:
 
