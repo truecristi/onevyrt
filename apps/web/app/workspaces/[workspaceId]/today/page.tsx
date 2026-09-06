@@ -67,6 +67,12 @@ export default async function TodayPage({ params }: { params: { workspaceId: str
           >
             Track metrics &rarr;
           </Link>
+          <Link
+            href={`/workspaces/${params.workspaceId}/today/profile`}
+            className="text-sm text-blue-700 hover:underline"
+          >
+            Business profile &rarr;
+          </Link>
         </div>
       </section>
 
