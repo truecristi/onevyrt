@@ -49,19 +49,10 @@ test("Learn, Build, Execute and Review are real links that honestly say they are
 
   for (const destination of ["Learn", "Build", "Execute", "Review"]) {
     await page.getByRole("link", { name: destination, exact: true }).click();
-    // Each of these destination pages sits under a dynamic layout that
-    // re-runs a real DB query (listWorkspacesForUser, for the
-    // membership re-check) on every single navigation - there's no
-    // static/cached page here, and next's client-side router updates
-    // the URL before that server round trip resolves. Confirmed via two
-    // real CI failures: the URL assertion alone passed (route changed)
-    // while the text assertion still timed out at the default 5000ms,
-    // consistently, on real CI hardware (never reproduced locally on
-    // faster hardware) - so this needs real headroom for that DB round
-    // trip under CI's shared, slower runners, not just a navigation
-    // checkpoint. A longer timeout here is calibrating for genuine
-    // per-navigation server latency, not masking a race.
-    await expect(page).toHaveURL(new RegExp(`/${destination.toLowerCase()}$`), { timeout: 15_000 });
-    await expect(page.getByText(`${destination} isn't built yet`)).toBeVisible({ timeout: 15_000 });
+    // Wait for the route itself to change before asserting on the new
+    // page's text - a real navigation checkpoint, not just relying on
+    // the text assertion's own polling to notice the DOM changed.
+    await expect(page).toHaveURL(new RegExp(`/${destination.toLowerCase()}$`));
+    await expect(page.getByText(`${destination} isn't built yet`)).toBeVisible();
   }
 });
