@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { listWorkspacesForUser } from "@onevyrt/domain";
 import { getServerContext } from "@/lib/server";
 import { getCurrentUser } from "@/lib/session";
@@ -44,21 +45,23 @@ export default async function DashboardPage() {
         </h2>
         <ul className="flex flex-col gap-2">
           {workspaces.map((workspace) => (
-            <li
-              key={workspace.id}
-              className="flex items-center justify-between rounded-md border border-gray-500 px-4 py-3"
-            >
-              <span className="font-medium text-gray-900">{workspace.name}</span>
-              <span className="text-xs uppercase text-gray-500">{workspace.role}</span>
+            <li key={workspace.id}>
+              <Link
+                href={`/workspaces/${workspace.id}/today`}
+                className="flex items-center justify-between rounded-md border border-gray-500 px-4 py-3 hover:border-blue-600"
+              >
+                <span className="font-medium text-gray-900">{workspace.name}</span>
+                <span className="text-xs uppercase text-gray-500">{workspace.role}</span>
+              </Link>
             </li>
           ))}
         </ul>
       </section>
 
       <p className="text-sm text-gray-500">
-        This is Phase 9&rsquo;s first real UI slice - identity through an authenticated,
-        workspace-aware page. The full five-destination product experience (Today, Learn, Build,
-        Execute, Review) is not built yet; see the repository README and ADR-0022 for what remains.
+        Open a workspace to see its Today dashboard - the full five-destination product experience
+        (Today, Learn, Build, Execute, Review) has a real nav now, but only Today has a real page
+        behind it so far; see the repository README and ADR-0022 for what remains.
       </p>
     </main>
   );
