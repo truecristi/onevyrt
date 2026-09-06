@@ -41,6 +41,51 @@ handful of tables and one call path (`packages/domain`), it would add
 migration complexity (`SET app.workspace_id`, policy per table) without
 yet buying much.
 
+### Re-verification at scale (Phase 8, "Test workspace isolation")
+
+The domain layer has since grown to 39 `*-use-cases.ts` files and 40+
+tables - large enough that "one integration test proved it once" is no
+longer sufficient confidence on its own. Phase 8's hardening pass
+re-verified this ADR's decision two ways:
+
+1. **A route-layer audit**: every file under `apps/web/app/api` was
+   checked for direct `db.select`/`db.query`/`db.insert`/etc. calls -
+   there are none; every route goes through `packages/domain`, exactly
+   as ADR-0002 requires. The one route that accepts a client-supplied
+   `workspaceId` in its request body rather than the URL path
+   (`.../application`, lesson applications linking a build activity to a
+   business record) was checked specifically: the domain function
+   (`submitLessonApplication`) independently re-verifies both that the
+   actor is a member of that `workspaceId` *and* that the referenced
+   resource actually belongs to it, so a caller cannot reference another
+   workspace's record even by guessing its ID - covered by an explicit
+   regression test
+   (`lesson-application-isolation.test.ts`'s "rejects a workspace the
+   learner doesn't belong to, and a resource that doesn't exist in the
+   given workspace").
+2. **A permanent automated guard**, not just a one-time audit:
+   `workspace-isolation-architecture.test.ts` statically scans every
+   `*-use-cases.ts` file and fails if any exported function referencing
+   `workspaceId` doesn't call `requireWorkspaceMembership` or
+   `requirePlatformAdmin` in its own body - the same "every function
+   re-derives the caller's membership and fails closed" rule this ADR
+   already establishes, now enforced by CI on every future function
+   rather than relying on a reviewer to remember it. Running it against
+   the current codebase found exactly one flagged function
+   (`recordAiCall`, Phase 6's cost/latency bookkeeping), which is a
+   documented, reviewed exemption in that test file: it's a write-only
+   side effect called immediately after its caller already verified the
+   same `workspaceId`, so it never reads or exposes cross-tenant data.
+
+Given the growth in table/module count since this ADR's "a handful of
+tables" reasoning, Row-Level Security is worth a fresh look in a future
+phase as an additional defense-in-depth layer - this re-verification
+found no gap that RLS would have caught, but the original "not yet
+enough surface area to justify the migration complexity" argument is
+weaker today than when this ADR was written. Still deferred, not
+re-decided, since finding zero gaps is not by itself a reason to add a
+new layer.
+
 ## Alternatives considered
 
 - **Postgres Row-Level Security from day one** - deferred per above.
