@@ -4,6 +4,7 @@ import { listOffers } from "@onevyrt/domain";
 import { getServerContext } from "@/lib/server";
 import { getCurrentUser } from "@/lib/session";
 import { OfferEditForm } from "./offer-edit-form";
+import { OfferArraysForm } from "./offer-arrays-form";
 import { UnitEconomicsCalculator } from "./unit-economics-calculator";
 import { formatPrice } from "../../format";
 
@@ -30,9 +31,6 @@ export default async function OfferDetailPage({
   if (!offer) {
     notFound();
   }
-
-  const hasExtras =
-    offer.offerComponents.length > 0 || offer.bonuses.length > 0 || offer.objections.length > 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -72,57 +70,26 @@ export default async function OfferDetailPage({
         />
       </section>
 
-      {hasExtras && (
-        <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-4">
+        <div>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
             Components, bonuses &amp; objections
           </h2>
-          <p className="text-sm text-gray-500">
-            These are shown read-only for now - editing offer components, bonuses and objections is
-            a later Build slice.
+          <p className="mt-1 text-sm text-gray-600">
+            The offer&rsquo;s building blocks - what the buyer gets, the extras that raise perceived
+            value, and the objections you answer. Add, edit and remove them here.
           </p>
-          {offer.offerComponents.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">Components</p>
-              <ul className="mt-1 list-inside list-disc text-sm text-gray-600">
-                {offer.offerComponents.map((component, index) => (
-                  <li key={index}>
-                    {component.name}
-                    {component.description ? ` - ${component.description}` : ""}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {offer.bonuses.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">Bonuses</p>
-              <ul className="mt-1 list-inside list-disc text-sm text-gray-600">
-                {offer.bonuses.map((bonus, index) => (
-                  <li key={index}>
-                    {bonus.name}
-                    {bonus.value ? ` (${bonus.value})` : ""}
-                    {bonus.description ? ` - ${bonus.description}` : ""}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {offer.objections.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-900">Objections</p>
-              <ul className="mt-1 list-inside list-disc text-sm text-gray-600">
-                {offer.objections.map((objection, index) => (
-                  <li key={index}>
-                    {objection.objection}
-                    {objection.response ? ` - ${objection.response}` : ""}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
+        </div>
+        <OfferArraysForm
+          workspaceId={params.workspaceId}
+          offerId={offer.id}
+          initial={{
+            offerComponents: offer.offerComponents,
+            bonuses: offer.bonuses,
+            objections: offer.objections,
+          }}
+        />
+      </section>
 
       <section className="flex flex-col gap-4">
         <div>
