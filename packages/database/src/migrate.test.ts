@@ -19,7 +19,7 @@ describe("runMigrations", () => {
     // whenever a new migration adds a table - see the table-name assertion
     // below, which needs the same update.
     await client.query(`
-      DROP TABLE IF EXISTS force_assessments, weekly_reviews, ai_call_records, task_proposals, artifact_proposals, launches, experiments, artifact_versions, funnel_steps, funnel_stages, scenario_assumption_overrides, scenarios, formula_definitions, lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, projects, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
+      DROP TABLE IF EXISTS improvement_loops, force_assessments, weekly_reviews, ai_call_records, task_proposals, artifact_proposals, launches, experiments, artifact_versions, funnel_steps, funnel_stages, scenario_assumption_overrides, scenarios, formula_definitions, lesson_applications, lesson_prerequisites, block_responses, notes, bookmarks, lesson_progress, enrollments, lesson_blocks, lessons, program_versions, programs, evidence, decisions, assumptions, business_metrics, tasks, projects, offers, customer_profiles, goals, business_profiles, audit_log, sessions, workspace_members, workspaces, users, schema_migrations CASCADE;
     `);
   });
 
@@ -64,6 +64,7 @@ describe("runMigrations", () => {
       "0031_ai_call_records.sql",
       "0032_weekly_reviews.sql",
       "0033_force_assessments.sql",
+      "0034_improvement_loops.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
@@ -91,6 +92,7 @@ describe("runMigrations", () => {
       "funnel_stages",
       "funnel_steps",
       "goals",
+      "improvement_loops",
       "launches",
       "lesson_applications",
       "lesson_blocks",

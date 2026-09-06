@@ -1491,3 +1491,66 @@ export const forceAssessments = pgTable(
     ),
   }),
 );
+
+/**
+ * PRD-REVIEW-007 vertical slice: improvement loops (README "Review and
+ * intelligence" -> "Improvement loops", seventh and final slice of
+ * Phase 7; spec section 2's closed loop - "identify constraints, test
+ * changes, choose the highest-leverage actions, execute those actions
+ * and measure the actual result"). Turns one of this phase's
+ * recommendations (getRecommendations - never persisted itself, always
+ * recomputed) into a tracked commitment: startImprovementLoop
+ * (improvement-loop-use-cases.ts) snapshots the recommendation's
+ * source/relatedId/title/rationale plus a numeric baselineValue for
+ * whatever that source measures (a force's score, a metric's progress,
+ * an aggregate count), optionally linked to a real task tracking the
+ * action; closeImprovementLoop later re-measures the same signal and
+ * records closeValue/improved/outcomeNote.
+ *
+ * relatedId is a plain text column, not a foreign key - it holds
+ * different kinds of identifier depending on source (a Force enum
+ * value for "constraint_diagnosis", a business_metrics.id for
+ * "lagging_metric", or nothing at all for the two aggregate-count
+ * sources), the same "no FK, just an id column" reasoning as
+ * artifact_versions.artifact_id. taskId *is* a real foreign key since
+ * it always points to exactly one kind of record.
+ */
+export const improvementLoops = pgTable(
+  "improvement_loops",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    actorUserId: uuid("actor_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    source: text("source").notNull(),
+    relatedId: text("related_id"),
+    title: text("title").notNull(),
+    rationale: text("rationale").notNull().default(""),
+    taskId: uuid("task_id").references(() => tasks.id, { onDelete: "set null" }),
+    status: text("status").notNull().default("open"),
+    /** The measured signal's value when this loop started; null if the signal was already unmeasurable at that point (rare, but never fabricated). */
+    baselineValue: doublePrecision("baseline_value"),
+    /** Re-measured at close time; null while open, or if the signal became unmeasurable by then (e.g. the metric was deleted). */
+    closeValue: doublePrecision("close_value"),
+    /** Null while open, or whenever either value is null - never guessed from a partial pair. */
+    improved: boolean("improved"),
+    outcomeNote: text("outcome_note").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+  },
+  (table) => ({
+    byWorkspace: index("improvement_loops_workspace_id_idx").on(table.workspaceId),
+    sourceCheck: check(
+      "improvement_loops_source_check",
+      sql`${table.source} IN ('constraint_diagnosis', 'overdue_tasks', 'untested_assumptions', 'lagging_metric')`,
+    ),
+    statusCheck: check(
+      "improvement_loops_status_check",
+      sql`${table.status} IN ('open', 'closed')`,
+    ),
+  }),
+);
