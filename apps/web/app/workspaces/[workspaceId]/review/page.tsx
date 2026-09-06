@@ -135,6 +135,12 @@ export default async function ReviewPage({ params }: { params: { workspaceId: st
         >
           Progress &rarr;
         </Link>
+        <Link
+          href={`/workspaces/${params.workspaceId}/review/coach`}
+          className="text-sm text-blue-700 hover:underline"
+        >
+          Coach &rarr;
+        </Link>
       </section>
     </div>
   );

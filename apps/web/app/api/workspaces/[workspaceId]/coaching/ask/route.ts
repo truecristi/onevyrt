@@ -6,10 +6,12 @@ import {
   getPromptTemplate,
   runPrompt,
   selectDefaultProvider,
+  createDeterministicProvider,
   AiProviderError,
   AiRateLimitExceededError,
   PromptOutputValidationError,
   DEFAULT_ANTHROPIC_MODEL,
+  type AiProvider,
   type CoachingAskOutput,
 } from "@onevyrt/ai";
 import { logger, newCorrelationId } from "@onevyrt/observability";
@@ -19,6 +21,35 @@ import { requireCsrf } from "@/lib/csrf";
 
 interface RouteParams {
   params: { workspaceId: string };
+}
+
+/**
+ * selectDefaultProvider() falls back to the deterministic adapter with no
+ * ANTHROPIC_API_KEY, but that adapter echoes plain text, which isn't the
+ * JSON envelope coaching_ask's schema requires - so a keyless deployment
+ * would 502 here. Rather than leave coaching dead without a key, this
+ * returns a deterministic provider whose response is a *labeled placeholder*
+ * answer: the ask -> answer flow stays exercisable (sandbox, CI, any keyless
+ * install), the answer states plainly it's a placeholder and how to get real
+ * coaching, and recordAiCall still attributes it to "deterministic" - never a
+ * silent stand-in for a real model. With a key set, the real Anthropic
+ * adapter is used untouched.
+ */
+function resolveCoachProvider(question: string): AiProvider {
+  const provider = selectDefaultProvider();
+  if (provider.id !== "deterministic") {
+    return provider;
+  }
+  return createDeterministicProvider({
+    respond: () =>
+      JSON.stringify({
+        answer:
+          `Placeholder response - no AI provider is configured, so this isn't real ` +
+          `coaching yet. You asked: "${question}". Set ANTHROPIC_API_KEY to get an ` +
+          `answer grounded in this workspace's profile, goals, assumptions and decisions.`,
+        followUpQuestion: null,
+      }),
+  });
 }
 
 /**
@@ -64,7 +95,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       throw new Error("coaching_ask prompt template is not registered");
     }
 
-    const provider = selectDefaultProvider();
+    const provider = resolveCoachProvider(parsed.data.question);
     const { output, completion } = await runPrompt(
       provider,
       template,
