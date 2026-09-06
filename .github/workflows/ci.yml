@@ -8,14 +8,14 @@ on:
   # better than a step-level `if:` that still pays for checkout + install
   # before deciding to skip. See docs/CI_CD_OPTIMIZATION.md.
   push:
-    branches: [master]
+    branches: [main]
     paths-ignore:
       - '**.md'
       - 'deploy/**'
       - 'docs/**'
       - 'LICENSE'
   pull_request:
-    branches: [master]
+    branches: [main]
     paths-ignore:
       - '**.md'
       - 'deploy/**'
