@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getWorkspaceScorecard, getRecommendations } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
 import { getServerContext } from "@/lib/server";
@@ -53,6 +54,12 @@ export default async function TodayPage({ params }: { params: { workspaceId: str
             </div>
           ))}
         </div>
+        <Link
+          href={`/workspaces/${params.workspaceId}/today/goals`}
+          className="mt-3 inline-block text-sm text-blue-700 hover:underline"
+        >
+          Manage goals &rarr;
+        </Link>
       </section>
 
       <section>
