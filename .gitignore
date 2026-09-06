@@ -11,3 +11,6 @@ coverage/
 .env.*.local
 .DS_Store
 *.tsbuildinfo
+/playwright-report/
+/test-results/
+/blob-report/

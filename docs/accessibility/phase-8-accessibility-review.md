@@ -126,3 +126,17 @@ lint rule set) as well as in the two respects fixed above.
   silently missed under the old broken glob and both correctly flagged
   after the fix, then removed the scratch file and re-ran lint clean
   against the real repository.
+
+## Addendum (Phase 9)
+
+The register/login/dashboard pages added in Phase 9's first UI slice
+are new real pages this review's "one static page" scope didn't cover
+and hasn't been re-run against. They reuse the same reviewed primitives
+(`Button`, `Input`) without modification, so they inherit this review's
+contrast/semantics findings by construction, and the working jsx-a11y
+lint this review fixed already runs against them in CI - but that is
+not the same as a fresh manual pass (keyboard navigation through the
+real multi-page flow, a screen-reader walkthrough) now that one
+actually exists to walk through. Left here as an honest gap rather than
+silently implied as covered; a real Phase 9+ accessibility pass over
+the growing page surface is still owed.
