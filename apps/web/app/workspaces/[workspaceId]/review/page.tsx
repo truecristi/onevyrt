@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listWeeklyReviews } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
@@ -41,6 +42,14 @@ export default async function ReviewPage({ params }: { params: { workspaceId: st
           Your weekly reviews - wins, challenges, and next-week focus, each with a snapshot of your
           scorecard that week. Experiment analysis, constraint diagnosis and progress trends are
           coming to Review in later slices.
+        </p>
+        <p className="mt-2 text-sm">
+          <Link
+            href={`/workspaces/${params.workspaceId}/review/financials`}
+            className="text-blue-600 hover:underline"
+          >
+            View financial results &rarr;
+          </Link>
         </p>
       </div>
 
