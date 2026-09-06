@@ -1125,6 +1125,17 @@ export const artifactVersions = pgTable(
   },
   (table) => ({
     byArtifact: index("artifact_versions_artifact_idx").on(table.artifactType, table.artifactId),
+    /**
+     * Phase 8 performance audit: every current query against this table
+     * filters by (workspaceId, artifactType, artifactId) together, so
+     * byArtifact above already serves them efficiently (that composite is
+     * highly selective on its own) - this index isn't fixing a slow query
+     * that exists today. Added anyway for the same reason every other
+     * workspace-scoped table has one: a future query that lists version
+     * history across a whole workspace (not one specific artifact) would
+     * otherwise have no index to use at all.
+     */
+    byWorkspace: index("artifact_versions_workspace_id_idx").on(table.workspaceId),
     uniqueVersionPerArtifact: unique("artifact_versions_artifact_version_key").on(
       table.artifactType,
       table.artifactId,

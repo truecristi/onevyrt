@@ -65,6 +65,7 @@ describe("runMigrations", () => {
       "0032_weekly_reviews.sql",
       "0033_force_assessments.sql",
       "0034_improvement_loops.sql",
+      "0035_artifact_versions_workspace_index.sql",
     ]);
 
     const { rows } = await client.query<{ table_name: string }>(`
