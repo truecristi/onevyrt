@@ -9,6 +9,20 @@ import { test, expect } from "@playwright/test";
  * through" - Phase 9's first UI slice.
  */
 
+// Give this spec its own rate-limit bucket. The register endpoint limits
+// to 5 attempts per client identifier per 15 minutes, and the whole E2E
+// suite drives many fresh registrations from one runner IP - enough,
+// collectively, to trip that limit. getClientIdentifier keys the limiter
+// on x-forwarded-for (which it trusts by design - apps/web/lib/client-ip.ts,
+// ADR-0004), so a distinct value per spec file keeps each file's handful
+// of registrations in its own bucket, well under the limit, without
+// touching or weakening the real production limit.
+test.use({
+  extraHTTPHeaders: {
+    "x-forwarded-for": `e2e-auth-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  },
+});
+
 function uniqueEmail(): string {
   return `e2e-${Date.now()}-${Math.random().toString(36).slice(2)}@example.test`;
 }

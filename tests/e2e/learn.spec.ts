@@ -16,6 +16,16 @@ import { test, expect } from "@playwright/test";
  * content agree on unique names without a shared database round-trip.
  */
 
+// Own rate-limit bucket for this spec's registration - see the note in
+// auth.spec.ts. (The admin is seeded via a direct domain call in the tsx
+// fixture, not the HTTP endpoint, so only the student registration here
+// counts against this bucket.)
+test.use({
+  extraHTTPHeaders: {
+    "x-forwarded-for": `e2e-learn-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  },
+});
+
 function unique(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }

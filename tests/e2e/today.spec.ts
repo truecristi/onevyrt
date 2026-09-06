@@ -9,6 +9,15 @@ import { test, expect } from "@playwright/test";
  * is already covered at the domain level (recommendation-isolation.test.ts).
  */
 
+// Own rate-limit bucket for this spec's registrations - see the note in
+// auth.spec.ts (a distinct x-forwarded-for per spec file keeps each file's
+// registrations under the register endpoint's 5-per-IP limit).
+test.use({
+  extraHTTPHeaders: {
+    "x-forwarded-for": `e2e-today-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  },
+});
+
 function uniqueEmail(): string {
   return `e2e-today-${Date.now()}-${Math.random().toString(36).slice(2)}@example.test`;
 }
@@ -34,7 +43,7 @@ test("a fresh workspace's Today page shows real, empty scorecard stats and an ho
   await expect(page.getByText("No recommendations yet")).toBeVisible();
 });
 
-test("Build, Execute and Review are real links that honestly say they aren't built yet; Learn has a real page", async ({
+test("Execute and Review are real links that honestly say they aren't built yet; Learn and Build have real pages", async ({
   page,
 }) => {
   const email = uniqueEmail();
@@ -47,14 +56,13 @@ test("Build, Execute and Review are real links that honestly say they aren't bui
   await page.getByRole("link", { name: /Nav Test Workspace/ }).click();
   await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
 
-  // Learn got a real page this slice (tests/e2e/learn.spec.ts covers its
-  // actual browse-enroll-learn loop) - just confirm it's a real page here,
-  // not the shared "isn't built yet" placeholder the other three still
-  // are. Not asserting on an empty catalog: curriculum content is
-  // platform-wide, not workspace-scoped (curriculum-use-cases.ts), so
-  // whether any programs are published is global state this test
-  // shouldn't depend on - other specs (learn.spec.ts) publish one of
-  // their own, and fullyParallel test order isn't guaranteed.
+  // Learn and Build both have real pages now (tests/e2e/learn.spec.ts and
+  // build.spec.ts cover their real journeys) - just confirm here that each
+  // renders a real page, not the shared "isn't built yet" placeholder the
+  // remaining two still are. Build's own empty state ("No offers yet") is
+  // workspace-scoped so it's safe to assert; Learn's catalog is
+  // platform-wide global state, so there we only assert the heading, not
+  // an empty catalog (build.spec.ts / learn.spec.ts publish their own).
   await page.getByRole("link", { name: "Learn", exact: true }).click();
   await expect(page).toHaveURL(/\/learn$/);
   await expect(page.getByRole("heading", { name: "Learn" })).toBeVisible();
@@ -63,7 +71,15 @@ test("Build, Execute and Review are real links that honestly say they aren't bui
   await page.goBack();
   await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
 
-  for (const destination of ["Build", "Execute", "Review"]) {
+  await page.getByRole("link", { name: "Build", exact: true }).click();
+  await expect(page).toHaveURL(/\/build$/);
+  await expect(page.getByRole("heading", { name: "Build" })).toBeVisible();
+  await expect(page.getByText("Build isn't built yet")).not.toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
+
+  for (const destination of ["Execute", "Review"]) {
     await page.getByRole("link", { name: destination, exact: true }).click();
     // Wait for the route itself to change before asserting on the new
     // page's text - a real navigation checkpoint, not just relying on
