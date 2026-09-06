@@ -80,6 +80,18 @@ export default async function BuildPage({ params }: { params: { workspaceId: str
 
         <CreateOfferForm workspaceId={params.workspaceId} />
       </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
+        <p className="text-sm">
+          <Link
+            href={`/workspaces/${params.workspaceId}/build/funnels`}
+            className="text-blue-600 hover:underline"
+          >
+            Funnel &rarr;
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }
