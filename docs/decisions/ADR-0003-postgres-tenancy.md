@@ -56,7 +56,7 @@ re-verified this ADR's decision two ways:
    (`.../application`, lesson applications linking a build activity to a
    business record) was checked specifically: the domain function
    (`submitLessonApplication`) independently re-verifies both that the
-   actor is a member of that `workspaceId` *and* that the referenced
+   actor is a member of that `workspaceId` _and_ that the referenced
    resource actually belongs to it, so a caller cannot reference another
    workspace's record even by guessing its ID - covered by an explicit
    regression test
