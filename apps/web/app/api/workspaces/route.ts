@@ -1,45 +1,30 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createWorkspaceRequestSchema } from "@onevyrt/contracts";
-import { createWorkspace, listWorkspacesForUser } from "@onevyrt/domain";
-import { logger, newCorrelationId } from "@onevyrt/observability";
-import { getServerContext } from "@/lib/server";
-import { getCurrentUser } from "@/lib/session";
-import { requireCsrf } from "@/lib/csrf";
+import { listForUser, createWorkspace, ensurePersonalWorkspace, DuplicateWorkspaceNameError, WorkspaceLimitError } from "../../../lib/workspaces";
+import { currentUser } from "../../../lib/auth";
+import { withRouteLogging } from "../../../lib/logger";
+import { track } from "../../../lib/analytics";
 
-export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+export const runtime = "nodejs";
+const json = (d: unknown, s = 200): Response => new Response(JSON.stringify(d), { status: s, headers: { "content-type": "application/json" } });
+
+export const GET = withRouteLogging("api/workspaces:GET", async (req: Request): Promise<Response> => {
+  const user = await currentUser(req.headers.get("cookie"));
+  if (!user) return json({ error: "not authenticated" }, 401);
+  await ensurePersonalWorkspace(user.id);
+  return json(await listForUser(user.id));
+});
+export const POST = withRouteLogging("api/workspaces:POST", async (req: Request): Promise<Response> => {
+  const user = await currentUser(req.headers.get("cookie"));
+  if (!user) return json({ error: "not authenticated" }, 401);
+  let body: { name?: unknown };
+  try { body = await req.json(); } catch { return json({ error: "invalid JSON body" }, 400); }
+  const name = typeof body.name === "string" ? body.name : "Untitled workspace";
+  let ws;
+  try {
+    ws = await createWorkspace(user.id, name);
+  } catch (e) {
+    if (e instanceof DuplicateWorkspaceNameError || e instanceof WorkspaceLimitError) return json({ error: e.message }, 409);
+    throw e;
   }
-
-  const { db } = getServerContext();
-  const workspaces = await listWorkspacesForUser(db, user.id);
-  return NextResponse.json({ workspaces });
-}
-
-export async function POST(request: NextRequest) {
-  const correlationId = newCorrelationId();
-
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  if (!requireCsrf(request)) {
-    return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
-  }
-
-  const parsed = createWorkspaceRequestSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid request", issues: parsed.error.flatten() },
-      { status: 400 },
-    );
-  }
-
-  const { db } = getServerContext();
-  const workspace = await createWorkspace(db, { ownerUserId: user.id, name: parsed.data.name });
-  logger.info("workspace created", { correlationId, userId: user.id, workspaceId: workspace.id });
-
-  return NextResponse.json({ workspace }, { status: 201 });
-}
+  void track("workspace_created", { userId: user.id, workspaceId: ws.id });
+  return json(ws);
+});

@@ -1,0 +1,14 @@
+# Fires the paired onevyrt-autodeploy.service every 3 minutes (and shortly after
+# boot). That is the entire "CI/CD" — a small poll of origin/master on your own
+# box, so a `git push` to master goes live within a few minutes for free.
+[Unit]
+Description=ONEVYRT poll-and-deploy timer (every 3 minutes)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=3min
+AccuracySec=30s
+Unit=onevyrt-autodeploy.service
+
+[Install]
+WantedBy=timers.target

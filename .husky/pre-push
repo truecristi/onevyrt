@@ -1,0 +1,38 @@
+#!/bin/sh
+# Pre-push hook for ONEVYRT
+# Runs comprehensive checks before pushing to remote
+#
+# This hook ensures code quality by running:
+# 1. All tests
+# 2. Build verification
+# 3. Prevents pushes with test failures or build errors
+#
+# Skip this hook with: git push --no-verify
+# See docs/CODE_STYLE_GUIDE.md for coding standards
+
+set -e
+
+echo "🚀 Running pre-push checks..."
+
+# Get the branch name
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "📍 Branch: $BRANCH"
+
+# Run tests
+echo "🧪 Running tests..."
+pnpm test || {
+  echo "❌ Tests failed. Please fix failing tests before pushing."
+  exit 1
+}
+echo "✅ Tests passed"
+
+# Run build
+echo "🔨 Building..."
+pnpm build || {
+  echo "❌ Build failed. Please fix build errors before pushing."
+  exit 1
+}
+echo "✅ Build passed"
+
+echo "✅ All pre-push checks passed! Ready to push."
+exit 0

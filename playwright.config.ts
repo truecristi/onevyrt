@@ -1,49 +1,60 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Phase 9: the first real Playwright config, now that apps/web has an
- * actual register/login/dashboard flow to click through (tests/e2e's own
- * README explained why this didn't exist before). Deliberately scoped to
- * one browser (chromium) for now - a cross-browser matrix is easy to add
- * later and not worth the CI time until there are more than a handful of
- * journeys covered.
+ * Playwright configuration for ONEVYRT E2E tests
+ * Covers web, mobile, and tablet viewports with parallel execution
  */
 export default defineConfig({
-  testDir: "./tests/e2e",
+  testDir: './e2e/tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? "list" : "html",
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: [
+    ['html', { outputFolder: 'e2e/test-results' }],
+    ['json', { outputFile: 'e2e/results.json' }],
+    ['junit', { outputFile: 'e2e/junit.xml' }],
+    ['list'],
+  ],
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:3100",
-    trace: "on-first-retry",
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
+
+  webServer: {
+    command: 'pnpm dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
+
   projects: [
     {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        // Lets a sandboxed dev environment point at a pre-installed
-        // browser binary that doesn't match this package's pinned
-        // Chromium build, instead of downloading one - unset in CI,
-        // where `playwright install --with-deps chromium` fetches the
-        // exact matching build normally.
-        ...(process.env.PLAYWRIGHT_LOCAL_EXECUTABLE_PATH
-          ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_LOCAL_EXECUTABLE_PATH } }
-          : {}),
-      },
+      name: 'desktop-chrome',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'desktop-firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'mobile-safari',
+      use: { ...devices['iPhone 12'] },
+    },
+    {
+      name: 'tablet-ipad',
+      use: { ...devices['iPad Pro'] },
     },
   ],
-  // CI starts the server itself (a real production build against a real
-  // Postgres, not `next dev`) before running tests - see ci.yml. Locally,
-  // this starts the dev server for you if E2E_BASE_URL isn't already
-  // pointed at a running one.
-  webServer: process.env.E2E_BASE_URL
-    ? undefined
-    : {
-        command: "pnpm --filter @onevyrt/web dev -- -p 3100",
-        url: "http://127.0.0.1:3100",
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
-      },
+
+  /**
+   * Viewport sizes for responsive testing
+   * 375px: mobile phone (iPhone SE)
+   * 768px: tablet (iPad)
+   * 1024px: desktop (small laptop)
+   * 1280px: full desktop
+   */
+  webServer: undefined, // Define above in use section
 });

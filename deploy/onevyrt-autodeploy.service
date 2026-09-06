@@ -1,0 +1,21 @@
+# Free continuous deploy for ONEVYRT — no GitHub Actions, no billing.
+# One-shot: fetch origin/master and deploy if it moved. Driven by the paired
+# .timer. Install:  sudo cp deploy/onevyrt-autodeploy.* /etc/systemd/system/
+# See deploy/AUTODEPLOY.md for the full one-time setup.
+[Unit]
+Description=ONEVYRT poll-and-deploy (checks origin/master, runs deploy.sh on change)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+# The user that owns /opt/onevyrt-src and can talk to docker. Adjust if needed.
+User=root
+Environment=SRC_DIR=/opt/onevyrt-src
+Environment=ENV_FILE=/etc/onevyrt/web.env
+Environment=BRANCH=master
+WorkingDirectory=/opt/onevyrt-src
+ExecStart=/usr/bin/env bash /opt/onevyrt-src/deploy/auto-deploy.sh
+# Don't let a failed deploy mark the unit as broken — the timer keeps firing
+# and the next tick retries (the marker only advances on success).
+SuccessExitStatus=0 1

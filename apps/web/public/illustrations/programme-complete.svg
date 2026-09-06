@@ -1,0 +1,77 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <style>
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .trophy { animation: bounce 2s ease-in-out infinite; }
+      .glow { animation: pulse 2s ease-in-out infinite; }
+      .confetti { animation: spin 3s linear infinite; }
+    </style>
+  </g>
+
+  <!-- Background circle glow -->
+  <circle cx="200" cy="200" r="180" fill="#eff6ff" opacity="0.4"/>
+  <circle cx="200" cy="200" r="160" fill="#dcfce7" opacity="0.3"/>
+  <circle cx="200" cy="200" r="140" fill="#fef3c7" opacity="0.2"/>
+
+  <!-- Trophy -->
+  <g class="trophy">
+    <!-- Trophy base -->
+    <rect x="160" y="280" width="80" height="12" fill="#d97706" rx="2"/>
+    <rect x="155" y="270" width="90" height="12" fill="#f59e0b" rx="2"/>
+
+    <!-- Trophy stem -->
+    <rect x="190" y="200" width="20" height="75" fill="#d97706"/>
+
+    <!-- Trophy cup -->
+    <ellipse cx="200" cy="180" rx="50" ry="45" fill="#f59e0b" stroke="#d97706" stroke-width="3"/>
+    <ellipse cx="200" cy="175" rx="48" ry="40" fill="#fbbf24"/>
+
+    <!-- Trophy handles -->
+    <path d="M 150 160 Q 120 150 130 110" stroke="#f59e0b" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M 250 160 Q 280 150 270 110" stroke="#f59e0b" stroke-width="6" fill="none" stroke-linecap="round"/>
+
+    <!-- Star in trophy -->
+    <g transform="translate(200, 170)">
+      <polygon points="0,-15 4,-5 15,-5 7,2 10,15 0,9 -10,15 -7,2 -15,-5 -4,-5" fill="#fbbf24"/>
+    </g>
+  </g>
+
+  <!-- Confetti pieces -->
+  <g class="confetti" opacity="0.7">
+    <rect x="80" y="80" width="8" height="12" fill="#2563eb" rx="1"/>
+    <rect x="320" y="100" width="10" height="10" fill="#16a34a" rx="1"/>
+    <rect x="100" y="250" width="12" height="8" fill="#dc2626" rx="1"/>
+    <rect x="300" y="200" width="8" height="12" fill="#d97706" rx="1"/>
+  </g>
+
+  <!-- Success checkmark -->
+  <circle cx="200" cy="200" r="120" fill="none" stroke="#16a34a" stroke-width="4" opacity="0.2"/>
+  <g transform="translate(200, 200)">
+    <path d="M -35 -5 L -15 15 L 35 -25" stroke="#16a34a" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+  </g>
+
+  <!-- Text -->
+  <text x="200" y="340" font-size="28" font-weight="800" text-anchor="middle" fill="#111827">
+    Programme Complete!
+  </text>
+  <text x="200" y="368" font-size="14" text-anchor="middle" fill="#475569">
+    You've transformed your business
+  </text>
+
+  <!-- Decorative dots -->
+  <circle cx="40" cy="60" r="4" fill="#2563eb" opacity="0.4"/>
+  <circle cx="360" cy="50" r="3" fill="#16a34a" opacity="0.4"/>
+  <circle cx="50" cy="330" r="3" fill="#dc2626" opacity="0.4"/>
+  <circle cx="340" cy="320" r="4" fill="#d97706" opacity="0.4"/>
+</svg>

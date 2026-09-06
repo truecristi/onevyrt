@@ -1,0 +1,54 @@
+#!/bin/sh
+# Commit message hook for ONEVYRT
+# Validates commit message format following conventional commits
+#
+# Valid formats:
+# - feat: Add new feature
+# - fix: Fix a bug
+# - docs: Update documentation
+# - style: Code style changes (formatting, semicolons, etc)
+# - refactor: Refactor code without feature/fix
+# - perf: Performance improvements
+# - test: Add or update tests
+# - chore: Maintenance tasks (dependencies, build, etc)
+# - ci: CI/CD pipeline changes
+#
+# Examples:
+# - feat: Add component organization docs
+# - fix: Correct ESLint configuration
+# - docs: Update CODE_STYLE_GUIDE.md
+# - refactor: Consolidate utility functions
+#
+# Bypass this hook with: git commit --no-verify
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Extract the first line of the commit message
+FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1)
+
+# Conventional commits pattern: type(scope): subject
+# Pattern: (feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.*\))?: .+
+PATTERN='^(feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.+\))?: .+'
+
+if ! echo "$FIRST_LINE" | grep -qE "$PATTERN"; then
+  echo "❌ Invalid commit message format."
+  echo ""
+  echo "Current message: $FIRST_LINE"
+  echo ""
+  echo "Commit messages should follow Conventional Commits format:"
+  echo "  <type>(<scope>): <subject>"
+  echo ""
+  echo "Valid types: feat, fix, docs, style, refactor, perf, test, chore, ci"
+  echo ""
+  echo "Examples:"
+  echo "  feat: Add component organization docs"
+  echo "  fix: Correct ESLint configuration"
+  echo "  docs(hooks): Update hooks library documentation"
+  echo "  refactor: Consolidate utility functions"
+  echo ""
+  exit 1
+fi
+
+echo "✅ Commit message format is valid"
+exit 0

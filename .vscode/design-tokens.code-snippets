@@ -1,0 +1,128 @@
+{
+  "Design Token: Brand Color": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-brand", "brand-color"],
+    "body": "var(--ds-brand)",
+    "description": "Primary brand color (#088057 light, #0a9e6e dark)"
+  },
+  "Design Token: Brand Hover": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-brand-hover", "brand-hover"],
+    "body": "var(--ds-brand-hover)",
+    "description": "Brand color on hover state"
+  },
+  "Design Token: Surface": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-surface", "surface-bg"],
+    "body": "var(--ds-surface)",
+    "description": "Card/panel background"
+  },
+  "Design Token: Text Primary": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-text-primary", "text-primary"],
+    "body": "var(--ds-text-primary)",
+    "description": "Primary text color"
+  },
+  "Design Token: Text Secondary": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-text-secondary", "text-secondary"],
+    "body": "var(--ds-text-secondary)",
+    "description": "Secondary/supporting text color"
+  },
+  "Design Token: Border Default": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-border-default", "border-default"],
+    "body": "var(--ds-border-default)",
+    "description": "Standard border color"
+  },
+  "Design Token: Shadow MD": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-shadow-md", "shadow-md"],
+    "body": "var(--ds-shadow-md)",
+    "description": "Standard elevation shadow"
+  },
+  "Design Token: Spacing 4": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-space-4", "space-4"],
+    "body": "var(--ds-space-4)",
+    "description": "16px spacing unit"
+  },
+  "Design Token: Radius MD": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-radius-md", "radius-md"],
+    "body": "var(--ds-radius-md)",
+    "description": "Standard 12px border radius"
+  },
+  "Design Token: Duration Base": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-dur-base", "dur-base"],
+    "body": "var(--ds-dur-base)",
+    "description": "150ms animation duration"
+  },
+  "Design Token: Ease Out": {
+    "scope": "typescriptreact,css",
+    "prefix": ["ds-ease-out", "ease-out"],
+    "body": "var(--ds-ease-out)",
+    "description": "Enter/arrival easing (0, 0, 0.2, 1)"
+  },
+  "React Component: Button Primary": {
+    "scope": "typescriptreact,jsx",
+    "prefix": ["btn-primary", "button-primary"],
+    "body": "<button className=\"btn primary\">${1:Click me}</button>",
+    "description": "Primary button using canonical .btn style"
+  },
+  "React Component: Card": {
+    "scope": "typescriptreact,jsx",
+    "prefix": ["card", "card-component"],
+    "body": "<div className=\"ds-card\">\n  ${1:Content}\n</div>",
+    "description": "Standard card with elevation and hover state"
+  },
+  "React Component: Input": {
+    "scope": "typescriptreact,jsx",
+    "prefix": ["input-field", "text-input"],
+    "body": "<input type=\"${1:text}\" className=\"ds-input\" placeholder=\"${2:Enter text...}\" />",
+    "description": "Design system input field"
+  },
+  "React Component: Badge": {
+    "scope": "typescriptreact,jsx",
+    "prefix": ["badge", "status-badge"],
+    "body": "<span className=\"ds-badge ds-badge--${1|success,warning,danger,info|}\">${2:Status}</span>",
+    "description": "Status badge with color variants"
+  },
+  "React Component: Page Shell": {
+    "scope": "typescriptreact,jsx",
+    "prefix": ["page-shell", "page-layout"],
+    "body": "<div className=\"ds-page\">\n  <div className=\"ds-page__inner\">\n    <div className=\"ds-page__head\">\n      <h1>${1:Page Title}</h1>\n    </div>\n    ${2:Content}\n  </div>\n</div>",
+    "description": "Standard page layout with header"
+  },
+  "CSS: Chapter Color START": {
+    "scope": "css",
+    "prefix": ["chapter-start", "color-start"],
+    "body": "color: var(--ds-chapter-start); background: var(--ds-chapter-start-soft);",
+    "description": "START chapter brand colors"
+  },
+  "CSS: Chapter Color DEFINE": {
+    "scope": "css",
+    "prefix": ["chapter-define", "color-define"],
+    "body": "color: var(--ds-chapter-define); background: var(--ds-chapter-define-soft);",
+    "description": "DEFINE chapter brand colors"
+  },
+  "CSS: Chapter Color IMPROVE": {
+    "scope": "css",
+    "prefix": ["chapter-improve", "color-improve"],
+    "body": "color: var(--ds-chapter-improve); background: var(--ds-chapter-improve-soft);",
+    "description": "IMPROVE & SCALE chapter brand colors"
+  },
+  "TypeScript: Import Tokens": {
+    "scope": "typescriptreact,typescript",
+    "prefix": ["import-tokens", "tokens-import"],
+    "body": "import { tokens, searchTokens } from '@/lib/design-tokens';",
+    "description": "Import design tokens module"
+  },
+  "TypeScript: Search Tokens": {
+    "scope": "typescriptreact,typescript",
+    "prefix": ["search-tokens", "token-search"],
+    "body": "const results = searchTokens('${1:brand}');",
+    "description": "Search for tokens by pattern"
+  }
+}

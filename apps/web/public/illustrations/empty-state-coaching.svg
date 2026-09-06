@@ -1,0 +1,52 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <style>
+      .mentor-circle { opacity: 0.8; }
+    </style>
+  </defs>
+
+  <!-- Background circles -->
+  <circle cx="150" cy="150" r="140" fill="#fef3c7" class="mentor-circle"/>
+  <circle cx="150" cy="150" r="120" fill="#dcfce7" class="mentor-circle"/>
+  <circle cx="150" cy="150" r="100" fill="#ecf8fa" class="mentor-circle"/>
+
+  <!-- Mentor illustration -->
+  <g transform="translate(150, 95)">
+    <!-- Head -->
+    <circle cx="0" cy="-15" r="12" fill="#d97706"/>
+    <!-- Shoulders/body -->
+    <rect x="-20" y="0" width="40" height="30" fill="#d97706" rx="4"/>
+    <!-- Arms pointing/gesturing -->
+    <line x1="-20" y1="8" x2="-35" y2="5" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+    <line x1="20" y1="8" x2="35" y2="5" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+    <!-- Hand gesture -->
+    <circle cx="-35" cy="5" r="3" fill="#d97706"/>
+    <circle cx="35" cy="5" r="3" fill="#d97706"/>
+  </g>
+
+  <!-- Speech bubble with text -->
+  <g transform="translate(150, 150)">
+    <!-- Speech bubble background -->
+    <path d="M -50 -20 L 50 -20 L 50 30 L 10 30 L 5 42 L 0 30 L -50 30 Z" fill="white" stroke="#d97706" stroke-width="2" rx="4"/>
+    <!-- Pointer highlight -->
+    <path d="M 0 30 L 5 42 L 10 30" fill="#d97706" opacity="0.1"/>
+  </g>
+
+  <!-- Decorative elements -->
+  <g opacity="0.5">
+    <circle cx="80" cy="80" r="4" fill="#2563eb"/>
+    <circle cx="220" cy="120" r="3" fill="#16a34a"/>
+    <circle cx="70" cy="240" r="3" fill="#dc2626"/>
+  </g>
+
+  <!-- Text -->
+  <text x="150" y="210" font-size="16" font-weight="700" text-anchor="middle" fill="#111827">
+    No Coaching Yet
+  </text>
+  <text x="150" y="235" font-size="12" text-anchor="middle" fill="#6b7280">
+    Once you join a coaching programme,
+  </text>
+  <text x="150" y="253" font-size="12" text-anchor="middle" fill="#6b7280">
+    your coach will appear here
+  </text>
+</svg>

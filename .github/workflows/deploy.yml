@@ -1,62 +1,134 @@
+# Production deploy — MANUAL (workflow_dispatch) by design: you decide when a
+# green commit ships, rather than every push to master auto-deploying. It joins
+# the Tailscale network (the server is only reachable on its tailnet), then runs
+# deploy/deploy.sh on the box, which migrates, rebuilds, swaps the container,
+# health-checks, and rolls back on failure.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   TS_OAUTH_CLIENT_ID / TS_OAUTH_SECRET  — Tailscale OAuth client (tag:ci scope)
+#   DEPLOY_SSH_KEY                         — private SSH key authorised on the server
+#   DEPLOY_HOST                            — server tailnet IP or MagicDNS name
+#   DEPLOY_USER                            — SSH user (e.g. root)
+# Optional repository variables:
+#   DEPLOY_SRC_DIR (default /opt/onevyrt-src), DEPLOY_ENV_FILE (default /etc/onevyrt/web.env)
 name: Deploy
 
-# ADR-0021: deploys to Vercel once CI is green on main. A separate
-# workflow from ci.yml on purpose - a deploy failure should never be
-# confused with a build-and-test failure, and this workflow has nothing
-# useful to do on a PR (draft PRs never deploy anything).
 on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to deploy (branch, tag or SHA)"
+        required: false
+        default: master
+  # Continuous delivery: after CI succeeds on master (i.e. a green PR merged),
+  # deploy the latest master automatically. Manual dispatch above still works
+  # for deploying a specific ref or re-running a deploy.
   workflow_run:
     workflows: ["CI"]
     types: [completed]
-    branches: [main]
+    branches: [master]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Only deploy a commit whose CI workflow actually succeeded - never a
-    # commit CI is still running against or has already failed.
-    if: github.event.workflow_run.conclusion == 'success'
-
+    # Only auto-deploy when the triggering CI run went green; a manual dispatch
+    # (no workflow_run payload) always proceeds.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # deploy/deploy.sh already bounds itself (health-check retries, then an
+    # automatic rebuild+rollback on failure), so this is a backstop for the
+    # SSH/Tailscale plumbing around it hanging, not the normal path — a
+    # healthy deploy plus rollback-on-failure should finish in a few minutes.
+    timeout-minutes: 15
     steps:
-      - name: Check for VERCEL_TOKEN
-        id: check-token
-        run: |
-          if [ -n "${{ secrets.VERCEL_TOKEN }}" ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::VERCEL_TOKEN is not set - skipping deploy. See docs/deployment/vercel-setup.md."
-          fi
-
-      - uses: actions/checkout@v4
-        if: steps.check-token.outputs.present == 'true'
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Install Vercel CLI
-        if: steps.check-token.outputs.present == 'true'
-        run: npm install --global vercel@latest
-
-      - name: Deploy to Vercel (production)
-        if: steps.check-token.outputs.present == 'true'
-        id: deploy
+      # Fail fast and loud when the deploy secrets aren't set, instead of dying
+      # with a cryptic "OAuth identity empty" inside the Tailscale action. Auto-
+      # deploys were silently failing here — this names exactly what's missing.
+      - name: Pre-flight — required secrets present
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-          vercel build --prod --token="$VERCEL_TOKEN"
-          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-
-      # Deploying is not the same as being healthy - checked separately,
-      # per apps/web/app/api/health/route.ts's own real (non-hardcoded)
-      # process/database health check.
-      - name: Verify /api/health on the live deployment
-        if: steps.check-token.outputs.present == 'true'
-        run: |
-          status=$(curl -s -o /tmp/health.json -w "%{http_code}" "${{ steps.deploy.outputs.url }}/api/health")
-          cat /tmp/health.json
-          if [ "$status" != "200" ]; then
-            echo "::error::Health check returned HTTP $status after deploy"
+          missing=""
+          for name in TS_OAUTH_CLIENT_ID TS_OAUTH_SECRET DEPLOY_SSH_KEY DEPLOY_HOST DEPLOY_USER; do
+            if [ -z "${!name}" ]; then missing="$missing $name"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Deploy not configured::Missing required secret(s):$missing — set them in Settings → Secrets and variables → Actions. Until then, deploy manually per RUNBOOK.md (ssh + deploy/deploy.sh)."
             exit 1
           fi
+          echo "All required deploy secrets are present."
+
+      - name: Join Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Deploy over SSH
+        id: ssh-deploy
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          REF: ${{ github.event.inputs.ref || 'master' }}
+          SRC_DIR: ${{ vars.DEPLOY_SRC_DIR || '/opt/onevyrt-src' }}
+          ENV_FILE: ${{ vars.DEPLOY_ENV_FILE || '/etc/onevyrt/web.env' }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          # Pull the latest deploy script onto the server, then run it. The
+          # script itself checks out $REF and does the migrate/build/swap/verify.
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new "$USER@$HOST" \
+            "cd '$SRC_DIR' && git fetch origin && git checkout origin/master -- deploy/deploy.sh && chmod +x deploy/deploy.sh && REF='origin/${REF}' SRC_DIR='$SRC_DIR' ENV_FILE='$ENV_FILE' bash deploy/deploy.sh"
+
+      # deploy/deploy.sh (run above, on the box) only ever curls 127.0.0.1 —
+      # it can confirm the container itself is healthy but not that the
+      # public path (DNS -> Cloudflare Tunnel -> box) is actually working.
+      # This checks that from the outside, independent of the server-side
+      # check, so a deploy that "succeeded" on the box but isn't reachable
+      # from the internet is caught by this same run.
+      - name: Verify public endpoint
+        id: verify-public
+        run: |
+          set -uo pipefail
+          url="https://onevyrt.masteryresearch.com/api/health?ready"
+          for i in $(seq 1 10); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$url" || true)"
+            if [ "$code" = "200" ]; then
+              echo "Public endpoint healthy (HTTP 200) after $i attempt(s): $url"
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "::error title=Deploy verification failed::$url did not return HTTP 200 after 10 attempts (last: HTTP ${code:-none}). The server-side deploy reported success, but the public endpoint isn't answering — check DNS/Cloudflare Tunnel, not just the container (docker logs onevyrt-app on the box)."
+          exit 1
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "### Deploy"
+            echo "| Step | Result |"
+            echo "|---|---|"
+            echo "| Deploy over SSH | ${{ steps.ssh-deploy.outcome }} |"
+            echo "| Public endpoint check | ${{ steps.verify-public.outcome }} |"
+            echo ""
+            echo "Trigger: \`${{ github.event_name }}\`"
+            if [ -n "${{ github.event.workflow_run.head_sha || '' }}" ]; then
+              echo ""
+              echo "CI-triggering commit: \`${{ github.event.workflow_run.head_sha }}\`"
+            fi
+            echo ""
+            echo "Ref requested (manual dispatch only): \`${{ github.event.inputs.ref || 'master' }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

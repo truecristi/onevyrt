@@ -1,3 +1,21 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Approve sharp's native build (Next.js image optimizer) so pnpm install does
+# not fail with ERR_PNPM_IGNORED_BUILDS. pnpm v11+ reads allowBuilds here; pnpm
+# v10 reads pnpm.onlyBuiltDependencies in package.json (set there too). Each
+# version uses the key it knows and ignores the other.
+allowBuilds:
+  sharp: true
+  esbuild: true
+  core-js: true
+
+# Security overrides — force safe minimum versions of transitive deps. pnpm 10+
+# reads `overrides` here (it no longer reads pnpm.overrides in package.json);
+# kept in package.json too for older pnpm. Must match the `overrides:` block in
+# pnpm-lock.yaml or `--frozen-lockfile` fails with ERR_PNPM_LOCKFILE_CONFIG_MISMATCH.
+overrides:
+  postcss@<8.5.18: ">=8.5.18"
+  nanoid@<3.3.18: ">=3.3.18"
+  sharp@<0.35.0: ">=0.35.0"

@@ -1,0 +1,1344 @@
+Yes. Now the whole ONEVYRT program becomes a **complete business coaching/course operating system** built around:
+
+```text
+1. Business Mastery-style coaching
+2. Business system mapping
+3. Profit-driver optimization
+4. Financial modelling
+5. Execution planning
+6. Reports and accountability
+7. Later actual tracking and variance
+```
+
+The canvas and numbers are still important, but they are no longer the start. They become the **implementation and proof layer** after the business has been defined.
+
+We should not copy the Tony Robbins workbook text into the app. We turn the principles into our own original modules, questions, models, dashboards, checklists and reports.
+
+# Whole ONEVYRT program structure
+
+## Program name idea
+
+```text
+ONEVYRT Business Transformation Program
+```
+
+Or:
+
+```text
+ONEVYRT Business Mastery OS
+```
+
+Better neutral/commercial name:
+
+```text
+ONEVYRT Transformation OS
+```
+
+Because we should not brand it as Tony Robbins or Business Mastery unless you have rights.
+
+---
+
+# The full program flow
+
+```text
+START
+↓
+1. Define the business
+↓
+2. Identify the breakthrough needed
+↓
+3. Clarify state, story and strategy
+↓
+4. Create the 24–36 month vision
+↓
+5. Build the 6–12 month milestone plan
+↓
+6. Audit what is missing / unseen
+↓
+7. Build the Money Machine
+↓
+8. Build the 7 Forces business plan
+↓
+9. Find the 5 profit drivers
+↓
+10. Map the business system
+↓
+11. Add the numbers
+↓
+12. Simulate scenarios
+↓
+13. Decide the highest-leverage actions
+↓
+14. Turn actions into execution checklists
+↓
+15. Generate reports
+↓
+16. Measure actuals later
+↓
+17. Calibrate and repeat
+```
+
+This becomes a **course + workbook + business operating system**.
+
+---
+
+# Main navigation inside the app
+
+I would structure ONEVYRT like this:
+
+```text
+PROGRAM
+DEFINE
+FORCES
+MAP
+MODEL
+SIMULATE
+DECIDE
+EXECUTE
+REPORTS
+MEASURE
+```
+
+## 1. PROGRAM
+
+This is the course layer.
+
+It teaches the user step by step.
+
+Contains:
+
+```text
+Modules
+Lessons
+Exercises
+Progress
+Completion %
+Unlock next step
+Video placeholder later
+Workbook prompts
+Reflection questions
+```
+
+The user is not thrown straight into a canvas.
+
+They are guided.
+
+---
+
+## 2. DEFINE
+
+This is the business definition centre.
+
+Contains:
+
+```text
+Business Profile
+Current Reality
+Breakthrough
+State / Story / Strategy
+Vision
+Milestones
+Why it must happen
+Mindfulness / Missing opportunities
+Immediate actions
+```
+
+This is where the app starts.
+
+---
+
+## 3. FORCES
+
+This is the new big module based on the 7 Forces structure.
+
+Contains:
+
+```text
+Force 1 — Business Map
+Force 2 — Strategic Innovation
+Force 3 — Marketing & Product Promises
+Force 4 — Sales Systems
+Force 5 — Financial & Legal Anticipation
+Force 6 — Optimization, People, Process, Execution
+Force 7 — Raving Fans & Culture
+```
+
+Each force has:
+
+```text
+Principles
+Action Items
+Dollar Value
+Deadline
+Owner later
+Status
+Priority
+Risk
+```
+
+This matches the implementation-plan structure you pasted: each force has principles, action items, dollar value and deadline.
+
+---
+
+## 4. MAP
+
+This is the visual business system map.
+
+Contains:
+
+```text
+Canvas
+Business system graph
+Customer journey
+Traffic sources
+Offers
+Sales process
+Delivery system
+People/process blocks
+Culture/service blocks
+Money machine blocks
+```
+
+This is where Funnelytics-style visual mapping and your business system graph come together.
+
+---
+
+## 5. MODEL
+
+This is the numbers layer.
+
+Contains:
+
+```text
+Traffic
+Leads
+Sales conversion
+Transaction value
+Follow-up
+Retention
+Referrals
+Costs
+Profit
+Freedom Fund %
+Security / Growth / Dream buckets
+```
+
+Numbers come after the business definition.
+
+---
+
+## 6. SIMULATE
+
+This is where scenarios happen.
+
+Contains:
+
+```text
+Base case
+Best case
+Worst case
+What-if changes
+Goal solver
+Risk ranges
+Sensitivity analysis
+5 profit-driver simulation
+```
+
+---
+
+## 7. DECIDE
+
+This is the coaching decision layer.
+
+Contains:
+
+```text
+Highest leverage action
+Biggest bottleneck
+Fastest cash improvement
+Biggest risk
+Best next move
+Decision summary
+```
+
+This is where ONEVYRT tells the user what matters most.
+
+---
+
+## 8. EXECUTE
+
+This is the implementation system.
+
+Contains:
+
+```text
+Action plan
+Checklists
+Tasks
+Deadlines
+Dollar value
+Priority
+Status
+Notes
+Client promise checklist
+Culture checklist
+Launch checklist
+```
+
+This connects the course to action.
+
+---
+
+## 9. REPORTS
+
+This generates useful outputs.
+
+Contains:
+
+```text
+Transformation Brief
+7 Forces Implementation Plan
+5 Profit Drivers Report
+Money Machine Report
+Raving Fans Report
+Scenario Comparison
+Action Plan Report
+Executive Summary
+```
+
+---
+
+## 10. MEASURE
+
+Later, after actual tracking is approved.
+
+Contains:
+
+```text
+ACTUAL data
+VARIANCE
+People tracking
+Explorer
+Step Explorer
+Flow
+Reports
+Calibration
+```
+
+This is the future Funnelytics-eyes layer.
+
+---
+
+# The course modules in detail
+
+## Module 1 — Business Identity
+
+Goal:
+
+Define the business before modelling it.
+
+Questions:
+
+```text
+What business are we transforming?
+Who do you serve?
+What result do you create?
+What is your main offer?
+What is your current business model?
+What stage is the business in?
+What is the main constraint?
+What is the main opportunity?
+```
+
+Outputs:
+
+```text
+Business profile
+Customer definition
+Offer definition
+Current reality summary
+```
+
+Used later in:
+
+```text
+Transformation Brief
+Canvas starter
+Reports
+```
+
+---
+
+## Module 2 — Breakthrough
+
+Goal:
+
+Identify what must change.
+
+Questions:
+
+```text
+What breakthrough is needed?
+What frustration or limitation must disappear?
+What triggered the need for change?
+What would be different after the breakthrough?
+Is this personal, business, or both?
+```
+
+Outputs:
+
+```text
+Breakthrough statement
+Current pain
+Desired shift
+```
+
+Used later in:
+
+```text
+Transformation Brief
+Decision report
+Action plan
+```
+
+---
+
+## Module 3 — State / Story / Strategy
+
+Goal:
+
+Clarify the human and strategic layer before numbers.
+
+Sections:
+
+```text
+Current State
+Current Story
+New Empowering Story
+New Strategy
+```
+
+Example:
+
+```text
+Current State:
+Reactive, unclear, overwhelmed
+
+Current Story:
+“We just need more leads”
+
+New Story:
+“We need to find the real bottleneck and improve the system”
+
+Strategy:
+Map the journey, measure conversion, improve offer, follow up, increase retention
+```
+
+Outputs:
+
+```text
+State diagnosis
+Story shift
+Strategy statement
+```
+
+---
+
+## Module 4 — Vision
+
+Goal:
+
+Define the target future.
+
+Questions:
+
+```text
+Where should the business be in 24–36 months?
+What would excite you?
+What must happen in 6–12 months?
+Why must this happen no matter what?
+What is one big action?
+What is one small action?
+```
+
+Outputs:
+
+```text
+24–36 month vision
+6–12 month milestones
+Why statement
+Immediate actions
+```
+
+Used later in:
+
+```text
+Goals
+Goal Solver
+Action checklist
+Scenario targets
+```
+
+---
+
+## Module 5 — Mindfulness / Missing Assumptions
+
+Goal:
+
+Find blind spots.
+
+Questions:
+
+```text
+What are you not seeing?
+What are customers trying to tell you?
+What are you failing to anticipate?
+What product/service issue are you ignoring?
+What client need is deeper than you assumed?
+What opportunity is hidden in the current problem?
+What should receive one hour of focus every week?
+```
+
+Outputs:
+
+```text
+Missing assumptions list
+Opportunity list
+Risk list
+Weekly focus item
+```
+
+Used later in:
+
+```text
+Risk Engine
+Assumption tracker
+Action plan
+```
+
+---
+
+# The 7 Forces module
+
+This becomes the centre of the program.
+
+## Force 1 — Know Where You Really Are & Create a Business Map
+
+Purpose:
+
+Understand the current business reality.
+
+Sections:
+
+```text
+Current numbers
+Current customer journey
+Current offers
+Current lead sources
+Current sales process
+Current delivery process
+Current bottlenecks
+Current cash flow
+```
+
+Actions:
+
+```text
+Map the business
+Collect baseline numbers
+Identify missing data
+Identify bottleneck
+```
+
+ONEVYRT feature:
+
+```text
+Business Map Canvas
+Current Reality Dashboard
+```
+
+---
+
+## Force 2 — Strategic Innovation: Products, Service & Delivery
+
+Purpose:
+
+Improve what the business sells and how it delivers.
+
+Sections:
+
+```text
+Current product/service
+New product ideas
+Delivery improvements
+Bundle ideas
+Continuity/subscription ideas
+Client experience improvements
+```
+
+Actions:
+
+```text
+Add offer
+Improve delivery
+Create bundle
+Create subscription
+Remove weak offer
+```
+
+ONEVYRT feature:
+
+```text
+Offer Innovation Board
+Product/Service Matrix
+```
+
+---
+
+## Force 3 — Marketing & Product Promises
+
+Purpose:
+
+Improve the promise, positioning and value communication.
+
+Sections:
+
+```text
+USP
+Value-added marketing
+Promise clarity
+Guarantee
+Message
+Audience
+Value-to-promotion ratio
+```
+
+Actions:
+
+```text
+Rewrite promise
+Improve offer page
+Add proof
+Add value content
+Improve message-market fit
+```
+
+ONEVYRT feature:
+
+```text
+Promise Builder
+Marketing Message Audit
+```
+
+---
+
+## Force 4 — Sales Mastery Systems
+
+Purpose:
+
+Improve conversion and follow-up.
+
+Sections:
+
+```text
+Lead capture
+Meaningful conversations
+Appointments booked
+Appointments held
+Close rate
+Follow-up close rate
+Referrals
+Declines/cancellations recovery
+```
+
+Actions:
+
+```text
+Improve sales script
+Add follow-up sequence
+Add referral ask
+Recover declined customers
+Improve appointment show rate
+```
+
+ONEVYRT feature:
+
+```text
+Sales Process Map
+Sales Conversion Calculator
+Follow-Up System
+```
+
+---
+
+## Force 5 — Financial & Legal Anticipation
+
+Purpose:
+
+Anticipate risk, cash, numbers, legal and financial exposure.
+
+Sections:
+
+```text
+Cash flow
+Profit
+Legal risk
+Tax exposure
+Contracts
+Debt
+Overhead
+Freedom Fund
+Security bucket
+Growth bucket
+Dream bucket
+```
+
+Actions:
+
+```text
+Set Freedom Fund %
+Automate transfers
+Build cash reserve
+Review contracts
+Track financial risks
+```
+
+ONEVYRT feature:
+
+```text
+Money Machine
+Risk Register
+Financial Anticipation Dashboard
+```
+
+---
+
+## Force 6 — Optimization & Maximization: People, Culture, Processes & Execution
+
+Purpose:
+
+Improve the operating system of the business.
+
+Sections:
+
+```text
+People
+Roles
+Process bottlenecks
+Execution gaps
+Task ownership
+Delivery standards
+Internal clients
+Workflow
+```
+
+Actions:
+
+```text
+Assign owners
+Improve process
+Create SOP
+Create checklist
+Remove bottleneck
+Set deadlines
+```
+
+ONEVYRT feature:
+
+```text
+Execution Board
+Process Map
+People/Culture Dashboard
+```
+
+---
+
+## Force 7 — Raving Fans & Culture
+
+Purpose:
+
+Create clients for life and a culture that serves them.
+
+Sections:
+
+```text
+Ideal client
+Client needs
+Client wounds
+Client desires
+Promises made
+Promises delivered
+Client support
+Over-communication
+Surprise/bonus
+Retention
+Referral
+```
+
+Actions:
+
+```text
+Create client promise audit
+Improve onboarding
+Add surprise value
+Follow up with best clients
+Ask for referrals
+Improve support response
+```
+
+ONEVYRT feature:
+
+```text
+Raving Fans Score
+Client Promise Manager
+Retention / Referral Map
+```
+
+---
+
+# The 5 Profit Drivers module
+
+This is very important because it connects coaching to the numbers engine.
+
+The 5 stages from your text become ONEVYRT’s **Profit Driver Engine**.
+
+## Profit Driver 1 — Increase Leads / Traffic
+
+Inputs:
+
+```text
+Visitors
+Leads
+Traffic channels
+Cost per lead
+Cost per click
+Source volume
+```
+
+Possible actions:
+
+```text
+Add traffic source
+Improve content
+Run ads
+Add referral source
+Add partner/JV
+Improve SEO
+```
+
+Canvas blocks:
+
+```text
+Traffic source nodes
+Campaign nodes
+Referral nodes
+Partner nodes
+```
+
+---
+
+## Profit Driver 2 — Increase Sales Process Effectiveness
+
+Inputs:
+
+```text
+Contacts captured
+Meaningful conversations
+Appointments booked
+Appointments held
+Opt-ins
+Presentations
+```
+
+2-step model:
+
+```text
+Contacts captured
+Meaningful conversations
+```
+
+4-step model:
+
+```text
+Contacts captured
+Meaningful conversations
+Appointments booked / opt-ins
+Appointments held / presentations given
+```
+
+This is where ONEVYRT becomes stronger than a basic funnel builder.
+
+---
+
+## Profit Driver 3 — Increase Sales Conversion
+
+Inputs:
+
+```text
+Initial close rate
+Follow-up close rate
+Referral conversion
+Sales call conversion
+Checkout conversion
+```
+
+Actions:
+
+```text
+Improve offer
+Improve script
+Improve proof
+Improve guarantee
+Improve follow-up
+Ask for referrals
+```
+
+---
+
+## Profit Driver 4 — Increase Transaction Value
+
+Inputs:
+
+```text
+Average order value
+Price
+Bundles
+Upsells
+Downsells
+Continuity/subscription
+Discounts
+```
+
+Actions:
+
+```text
+Raise price
+Add bundle
+Add upsell
+Add downsell
+Reduce discounts
+Add subscription
+```
+
+This links directly to current ONEVYRT nodes: order form, upsell, downsell, product price.
+
+---
+
+## Profit Driver 5 — Add More Value / Follow-Up / Retention
+
+Inputs:
+
+```text
+Frequency of purchase
+Products sold per client
+Retention
+Reactivation
+Referrals
+Declines recovered
+Cancellations recovered
+```
+
+Actions:
+
+```text
+Follow up for referrals
+Follow up declines
+Win back clients
+Increase purchase frequency
+Improve retention
+Add more offers
+```
+
+This is where ONEVYRT expands beyond front-end funnels into business transformation.
+
+---
+
+# How the 5 Profit Drivers connect to the simulator
+
+The engine should let the user test small improvements.
+
+Example:
+
+```text
+Leads +10%
+Sales process +10%
+Conversion +10%
+Transaction value +10%
+Retention/follow-up +10%
+```
+
+Then ONEVYRT shows the geometric effect.
+
+This becomes a key coaching page:
+
+```text
+Small Improvements Compound
+```
+
+The user can see:
+
+```text
+Current business
+Improved leads
+Improved sales process
+Improved conversion
+Improved transaction value
+Improved retention
+Total effect
+```
+
+This is extremely strong because it turns the course concept into measurable transformation.
+
+---
+
+# The implementation plan screen
+
+Each Force should have its own implementation table.
+
+Columns:
+
+```text
+Force
+Principle
+Action Item
+Dollar Value
+Deadline
+Owner
+Status
+Priority
+Confidence
+Risk
+Linked Canvas Node
+Linked KPI
+```
+
+Minimum version:
+
+```text
+Principle
+Action Item
+Dollar Value
+Deadline
+Status
+```
+
+This matches the implementation-plan structure you pasted.
+
+---
+
+# Money Machine integration
+
+Money Machine becomes part of Force 5.
+
+Sections:
+
+```text
+Freedom Fund %
+Why this is a must
+Automation actions
+Security bucket %
+Growth bucket %
+Dream bucket %
+Dream items
+```
+
+Then connect to profit:
+
+```text
+Monthly Profit × Freedom Fund %
+Annual Profit × Freedom Fund %
+Projected Freedom Fund
+Security/Growth/Dream allocation
+```
+
+This turns business growth into owner freedom.
+
+---
+
+# Raving Fans integration
+
+Raving Fans becomes Force 7.
+
+Sections:
+
+```text
+Client promise
+Client needs
+Over-delivery plan
+Value-to-promotion ratio
+Referral plan
+Retention plan
+Support standards
+Culture standards
+```
+
+Metrics:
+
+```text
+Retention rate
+Referral rate
+Repeat purchase rate
+Complaint rate
+Response time
+Promise delivery score
+Raving fan score
+```
+
+This connects to Profit Driver 5.
+
+---
+
+# Reports the program should generate
+
+## 1. Transformation Brief
+
+Contains:
+
+```text
+Business identity
+Breakthrough needed
+State / story / strategy
+Vision
+Milestones
+Main opportunity
+Main bottleneck
+Immediate actions
+```
+
+## 2. 7 Forces Implementation Plan
+
+Contains:
+
+```text
+All 7 forces
+Principles
+Action items
+Dollar value
+Deadlines
+Status
+```
+
+## 3. 5 Profit Drivers Report
+
+Contains:
+
+```text
+Current baseline
+Lead improvement
+Sales process improvement
+Conversion improvement
+Transaction value improvement
+Retention/follow-up improvement
+Projected growth
+```
+
+## 4. Money Machine Report
+
+Contains:
+
+```text
+Freedom Fund %
+Security bucket
+Growth bucket
+Dream bucket
+Automation actions
+Projected allocation
+```
+
+## 5. Raving Fans Report
+
+Contains:
+
+```text
+Client profile
+Promises
+Service gaps
+Retention actions
+Referral actions
+Culture actions
+```
+
+## 6. Scenario Comparison Report
+
+Contains:
+
+```text
+Base case
+Improved case
+Best case
+Worst case
+Profit impact
+Required action
+```
+
+## 7. Executive Action Plan
+
+Contains:
+
+```text
+Top 3 actions
+Dollar value
+Deadline
+Owner
+Expected effect
+Risk
+```
+
+---
+
+# Final program layout
+
+This is how the whole program would look:
+
+```text
+ONEVYRT BUSINESS TRANSFORMATION PROGRAM
+
+PHASE 1 — CLARITY
+1. Business Identity
+2. Current Reality
+3. Breakthrough
+4. State / Story / Strategy
+5. Vision 24–36 Months
+6. Milestones 6–12 Months
+7. Mindfulness: What Are We Missing?
+
+PHASE 2 — MONEY & OWNER FREEDOM
+8. Money Machine
+9. Freedom Fund
+10. Security / Growth / Dream Buckets
+11. Financial Anticipation
+
+PHASE 3 — THE 7 FORCES
+12. Force 1: Business Map
+13. Force 2: Strategic Innovation
+14. Force 3: Marketing & Product Promises
+15. Force 4: Sales Mastery Systems
+16. Force 5: Financial & Legal Anticipation
+17. Force 6: Optimization, People, Process, Execution
+18. Force 7: Raving Fans & Culture
+
+PHASE 4 — PROFIT DRIVERS
+19. Increase Leads / Traffic
+20. Increase Sales Process Effectiveness
+21. Increase Sales Conversion
+22. Increase Transaction Value
+23. Increase Follow-Up, Retention, Referrals
+
+PHASE 5 — MAP & MODEL
+24. Business System Canvas
+25. Customer Journey Map
+26. Offer / Product Map
+27. Sales Process Map
+28. Delivery / Culture Map
+29. Financial Model
+
+PHASE 6 — SIMULATE
+30. Base Scenario
+31. What-If Scenarios
+32. Best / Likely / Worst Case
+33. Goal Solver
+34. Risk / Sensitivity
+
+PHASE 7 — DECIDE
+35. Bottleneck Diagnosis
+36. Highest-Leverage Action
+37. Dollar Value Priority
+38. Decision Summary
+
+PHASE 8 — EXECUTE
+39. Action Plan
+40. Checklists
+41. Deadlines
+42. Promise Delivery
+43. Raving Fan Culture Tasks
+
+PHASE 9 — REPORT
+44. Transformation Brief
+45. 7 Forces Plan
+46. 5 Profit Drivers Report
+47. Money Machine Report
+48. Raving Fans Report
+49. Scenario Report
+
+PHASE 10 — MEASURE / CALIBRATE LATER
+50. Actual Data
+51. Variance
+52. Tracking
+53. Explorer
+54. Calibration Loop
+```
+
+---
+
+# What this means for the app we already built
+
+The current canvas/numbers work becomes **Phase 5 and Phase 6**.
+
+So the app is not wrong. It is just not the beginning anymore.
+
+Current built work belongs here:
+
+```text
+PHASE 5 — MAP & MODEL
+PHASE 6 — SIMULATE
+```
+
+New missing front-end program belongs before it:
+
+```text
+PHASE 1 — CLARITY
+PHASE 2 — MONEY & OWNER FREEDOM
+PHASE 3 — THE 7 FORCES
+PHASE 4 — PROFIT DRIVERS
+```
+
+That is the correct evolution.
+
+---
+
+# What Claude should implement next
+
+The next chapter should be:
+
+```text
+209 Program Shell + Business Transformation Course
+```
+
+It should add:
+
+```text
+Program tab
+Phase navigation
+Module cards
+Progress tracking
+Workbook data model
+Business Definition page
+7 Forces page
+5 Profit Drivers page
+Money Machine page
+Raving Fans page
+Transformation Brief page
+```
+
+Do not yet build tracking. Do not activate runtime.
+
+Minimum first version:
+
+```text
+Program route/tab
+Course phase list
+Workbook forms
+Save to project JSON/local state
+Generate Transformation Brief
+Generate Action Items table
+```
+
+Then later connect it to canvas/numbers.
+
+---
+
+# One clear instruction for Claude
+
+```text
+ONEVYRT is now a business coaching program/course plus operating system. The current canvas and simulation engine remain core, but they are Phase 5/6, not the starting point. Add a Program layer before the canvas: Clarity, Money Machine, 7 Forces, 5 Profit Drivers, Map & Model, Simulate, Decide, Execute, Report, Measure later. Convert the Business Mastery-inspired ideas into original software modules, not copied text. Each module must save structured project data, generate action items with dollar value/deadline, feed goals/checklists/reports, and later connect to the modelling engine. Keep the app local-first and do not activate workers, queues, providers, production auth or ACTUAL tracking yet.
+```

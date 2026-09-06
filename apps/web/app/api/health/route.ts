@@ -1,40 +1,33 @@
-import { NextResponse } from "next/server";
-import { sql } from "drizzle-orm";
-import { getServerContext } from "@/lib/server";
-
 /**
- * §13: "Health endpoints distinguish process health, dependency readiness
- * and deployment version." Never hardcodes "ok" - it actually pings the
- * database, and reports plainly if that fails rather than swallowing it.
+ * Unauthenticated health probe (Ch.090). Two modes, both safe to poll from
+ * outside auth because neither returns internal state, paths, or user data:
  *
- * Forced dynamic: without this, Next statically renders a route with no
- * cookies/headers/searchParams access at build time and serves that one
- * frozen response forever - which for a health check would mean it always
- * reports whatever the database looked like during `next build`, never
- * the live state.
+ *  - Liveness (default): uptime/version — "is the process up".
+ *  - Readiness (`?ready`): also confirms the database is reachable, returning
+ *    only ok/not-ok (503) with no error detail — so a load balancer can pull a
+ *    container that's lost its DB without the endpoint leaking why.
  */
-export const dynamic = "force-dynamic";
+import { dbConfigured, pgPool } from "../../../lib/db";
+import pkg from "../../../package.json";
 
-export async function GET() {
-  const startedAt = Date.now();
-  let databaseReachable = false;
-  let databaseError: string | undefined;
+export const runtime = "nodejs";
 
-  try {
-    const { db } = getServerContext();
-    await db.execute(sql`select 1`);
-    databaseReachable = true;
-  } catch (error) {
-    databaseError = error instanceof Error ? error.message : "Unknown database error";
+const startedAt = Date.now();
+const json = (b: unknown, s = 200): Response =>
+  new Response(JSON.stringify(b), { status: s, headers: { "content-type": "application/json" } });
+
+export async function GET(req: Request): Promise<Response> {
+  const version = typeof pkg.version === "string" ? pkg.version : "0.0.0";
+
+  if (new URL(req.url).searchParams.get("ready") !== null) {
+    if (!dbConfigured()) return json({ ok: true, db: "not-configured", version });
+    try {
+      await pgPool().query("SELECT 1");
+      return json({ ok: true, db: "up", version });
+    } catch {
+      return json({ ok: false, db: "down", version }, 503);
+    }
   }
 
-  const body = {
-    process: "ok" as const,
-    database: databaseReachable ? ("ok" as const) : ("unreachable" as const),
-    databaseError,
-    version: process.env.npm_package_version ?? "0.0.0",
-    checkedInMs: Date.now() - startedAt,
-  };
-
-  return NextResponse.json(body, { status: databaseReachable ? 200 : 503 });
+  return json({ ok: true, uptimeSec: Math.floor((Date.now() - startedAt) / 1000), version });
 }

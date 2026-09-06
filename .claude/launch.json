@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "onevyrt-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "C:\\Users\\TheKing\\Documents\\TheGearBox\\apps\\web", "exec", "next", "dev", "-p", "4300"],
+      "port": 4300
+    }
+  ]
+}

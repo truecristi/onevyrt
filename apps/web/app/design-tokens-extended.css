@@ -1,0 +1,192 @@
+/* ==========================================================================
+   ONEVYRT Design System — Extended Tokens (Lazy-Loaded)
+
+   These tokens are loaded ONLY when needed, reducing critical path CSS:
+   - Animation/motion specifications (rarely overridden)
+   - Shadows with multiple variants (used in components)
+   - Typography sizing (load on-demand if not using Tailwind)
+   - Component-specific dimensions
+
+   Lazy-load trigger: Dynamically inject via JavaScript when first accessed,
+   or use data-theme-extended attribute on HTML to pre-load.
+
+   SIZE: ~2KB gzipped
+   ========================================================================= */
+
+:root {
+  /* =========================================================================
+     ANIMATION DURATIONS — Extended palette (lazy-loaded)
+     ========================================================================= */
+
+  --duration-micro: 75ms;
+  --duration-fast: 120ms;
+  --duration-base: 150ms;
+  --duration-hover: 160ms;
+  --duration-panel: 200ms;
+  --duration-modal: 240ms;
+  --duration-slow: 300ms;
+
+  /* EASING FUNCTIONS */
+  --ease-linear: cubic-bezier(0, 0, 1, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-default: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+  /* =========================================================================
+     SHADOWS — Apple macOS-style elevation system
+     ========================================================================= */
+
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 2px 6px -1px rgba(15, 23, 42, 0.08),
+    0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 24px -6px rgba(15, 23, 42, 0.12),
+    0 2px 6px -2px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 20px 48px -12px rgba(15, 23, 42, 0.2),
+    0 6px 16px -8px rgba(15, 23, 42, 0.1);
+  --shadow-xl: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+
+  /* =========================================================================
+     TYPOGRAPHY — Font sizes (if not relying on Tailwind utilities)
+     ========================================================================= */
+
+  --size-display-xl: 64px;
+  --size-display-lg: 48px;
+  --size-h1: 32px;
+  --size-h2: 24px;
+  --size-h3: 20px;
+  --size-h4: 18px;
+  --size-h5: 16px;
+  --size-body-lg: 16px;
+  --size-body: 14px;
+  --size-body-sm: 13px;
+  --size-label: 13px;
+  --size-caption: 12px;
+  --size-overline: 11px;
+
+  /* LINE HEIGHTS */
+  --line-tight: 1.2;
+  --line-snug: 1.4;
+  --line-normal: 1.6;
+  --line-relaxed: 1.8;
+  --line-loose: 2;
+
+  /* LETTER SPACING */
+  --letter-tight: -0.02em;
+  --letter-base: -0.005em;
+  --letter-loose: 0.02em;
+
+  /* =========================================================================
+     COMPONENT DIMENSIONS — Button, icon, input heights
+     ========================================================================= */
+
+  --button-xs: 28px;
+  --button-sm: 32px;
+  --button-md: 40px;
+  --button-lg: 44px;
+  --button-xl: 48px;
+
+  --icon-xs: 16px;
+  --icon-sm: 20px;
+  --icon-md: 24px;
+  --icon-lg: 32px;
+  --icon-xl: 48px;
+
+  /* INPUT HEIGHTS (match button scale) */
+  --input-sm: 32px;
+  --input-md: 40px;
+  --input-lg: 44px;
+
+  /* =========================================================================
+     ZINDEX SCALE — Layering hierarchy (rarely overridden)
+     ========================================================================= */
+
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-popover: 1030;
+  --z-tooltip: 1040;
+  --z-modal: 1050;
+  --z-offcanvas: 1060;
+  --z-message: 1070;
+  --z-skip: 2000;
+
+  /* =========================================================================
+     OVERLAY OPACITY — Modal/dialog backgrounds
+     ========================================================================= */
+
+  --overlay-default: rgba(15, 23, 42, 0.25);
+  --overlay-modal: rgba(0, 0, 0, 0.4);
+
+  /* =========================================================================
+     DIVIDER & SEPARATOR
+     ========================================================================= */
+
+  --divider: #e2e8f0;
+}
+
+/* =========================================================================
+   DARK MODE EXTENDED — Shadows and overlays for dark theme
+   ========================================================================= */
+
+:root[data-theme="dark"] {
+  /* SHADOWS (more opaque on dark) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 6px -1px rgba(0, 0, 0, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px -6px rgba(0, 0, 0, 0.55),
+    0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 48px -12px rgba(0, 0, 0, 0.65),
+    0 6px 16px -8px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+  /* OVERLAY (darker on dark theme) */
+  --overlay-default: rgba(0, 0, 0, 0.4);
+  --overlay-modal: rgba(0, 0, 0, 0.6);
+
+  /* DIVIDER (translucent) */
+  --divider: rgba(148, 163, 184, 0.12);
+}
+
+/* =========================================================================
+   UTILITY: Semantic color combinations for common patterns
+   (Advanced tree-shaking: only import if needed)
+   ========================================================================= */
+
+/* Rarely used: provides pre-composed color + background combinations */
+:root {
+  /* Success badge: green text on light green background */
+  --badge-success-color: #12703a;
+  --badge-success-bg: #ecfdf3;
+
+  /* Warning badge */
+  --badge-warning-color: #b45309;
+  --badge-warning-bg: #fff8e7;
+
+  /* Danger badge */
+  --badge-danger-color: #c81e1e;
+  --badge-danger-bg: #fff1f1;
+
+  /* Info badge */
+  --badge-info-color: #2563eb;
+  --badge-info-bg: #eff6ff;
+
+  /* Disabled state (universal) */
+  --state-disabled-opacity: 0.5;
+  --state-disabled-cursor: not-allowed;
+}
+
+:root[data-theme="dark"] {
+  /* Dark-mode badge variants */
+  --badge-success-color: #34d399;
+  --badge-success-bg: #052e2b;
+
+  --badge-warning-color: #fbbf24;
+  --badge-warning-bg: #2a2005;
+
+  --badge-danger-color: #f87171;
+  --badge-danger-bg: #2a1010;
+
+  --badge-info-color: #60a5fa;
+  --badge-info-bg: #0c1c3a;
+}

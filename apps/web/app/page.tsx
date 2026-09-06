@@ -1,13 +1,12 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/session";
-
 /**
- * Phase 9 first UI slice: replaces the Phase 0/1 static placeholder now
- * that there's somewhere real to send a visitor - an authenticated
- * session goes to the dashboard, everyone else to login. The root route
- * itself renders nothing; it only ever redirects.
+ * Root `/`. For a SIGNED-OUT visitor this renders the auth-aware Funnel Studio,
+ * which shows the sign-in surface. A SIGNED-IN, param-less `/` never reaches
+ * here — middleware 307s it to the canonical Home `/command-center` (proposal
+ * §3). The password-reset `?resetToken=…` flow keeps `/` untouched, so it still
+ * renders here while signed out.
  */
-export default async function HomePage() {
-  const user = await getCurrentUser();
-  redirect(user ? "/dashboard" : "/login");
+import StudioShell from "./studio-shell";
+
+export default function Home() {
+  return <StudioShell />;
 }

@@ -1,3 +1,759 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --background: #f8fafd;
+  --foreground: #202124;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Skip-to-content link: visually hidden until a keyboard user tabs to it, then
+   it pops into the top-left as the first focusable element so they can jump
+   past the toolbar to the workspace. Mouse users never see it. */
+.gb-skip {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 2000;
+  background: var(--ds-brand);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight:500;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.gb-skip:focus {
+  top: 8px;
+}
+
+/* Screen reader only text — visually hidden but announced to assistive tech.
+   Use for labels, descriptions, or context that's redundant for sighted users
+   but essential for screen reader users. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Show sr-only content on focus (keyboard navigation). Use with sr-only:
+   <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a> */
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Accessibility: honour the OS "reduce motion" setting (vestibular disorders,
+   motion sensitivity). Collapse transitions and one-shot animations — the
+   slide-ins, hover lifts and glass fades add polish, not meaning, so removing
+   their motion loses nothing. Loading spinners (.spinner/.mini-spin) are
+   deliberately exempt: a frozen spinner reads as "stuck", so a slow continuous
+   rotation is the more accessible choice than a stopped one. Applies site-wide
+   (imported in layout), covering the studio and every business/campaign page. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  *:not(.spinner):not(.mini-spin), *:not(.spinner):not(.mini-spin)::before, *:not(.spinner):not(.mini-spin)::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+  }
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+/* GEARBOX GOOGLE-LIKE THEME START */
+/* ==========================================================================
+   The Gear Box · Google-like light theme (token-backed)
+   Ported from ONEVYRT's design system.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+  --gear-bg: #f8fafd;
+  --gear-surface: #ffffff;
+  --gear-surface-soft: #f1f3f4;
+  --gear-border: #dadce0;
+  --gear-border-soft: #e8eaed;
+  --gear-text: #202124;
+  --gear-text-soft: #3c4043;
+  --gear-muted: #5f6368;
+  --gear-blue: #1a73e8;
+  --gear-blue-soft: #e8f0fe;
+  --gear-green: #188038;
+  --gear-red: #d93025;
+  --gear-amber: #f9ab00;
+  --gear-placeholder: #80868b;
+}
+
+/* One theme, one switch. Dark is EXPLICIT — driven by [data-theme="dark"] on
+   <html> (set by the app's light/dark toggle + the no-flash init script in
+   layout.tsx), never by prefers-color-scheme. That keeps the default
+   deterministically light for public/unauthenticated pages (the live /q/[slug]
+   funnel styles itself and its inputs light), while the toggle flips the whole
+   product — body, inputs, cards — together. Values are kept in lockstep with
+   the --ds-* dark tokens in design-system.css so nothing diverges. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #1a2438;
+  --foreground: #f8fafc;
+  --gear-bg: #1a2438;
+  --gear-surface: #26314c;
+  --gear-surface-soft: #2c3958;
+  --gear-border: rgba(148, 163, 184, 0.20);
+  --gear-border-soft: rgba(148, 163, 184, 0.12);
+  --gear-text: #f8fafc;
+  --gear-text-soft: #cbd5e1;
+  --gear-muted: #94a3b8;
+  --gear-blue: #6ea8ff;
+  --gear-blue-soft: #14233f;
+  --gear-green: #3fd39e;
+  --gear-red: #ff6b6b;
+  --gear-amber: #f5c451;
+  --gear-placeholder: #6b7482;
+}
+
+html,
+body {
+  background: var(--gear-bg) !important;
+  color: var(--gear-text) !important;
+  /* Apple-first stack: on a Mac this resolves to San Francisco (the system UI
+     font), which is what gives the whole product its "native macOS" feel.
+     var(--font-roboto)/Roboto stay as the cross-platform fallback. */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    var(--font-roboto), "Roboto", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.0025em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  letter-spacing: 0;
+}
+
+button {
+  font-weight: 500 !important;
+}
+
+input,
+select,
+textarea {
+  background: var(--gear-surface) !important;
+  border-color: var(--gear-border) !important;
+  color: var(--gear-text) !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,.02) !important;
+  caret-color: var(--ds-brand);
+  transition: all 160ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* A soft, brand-tinted focus ring on every field — the calm, unmistakable
+   focus state macOS controls have, instead of the browser's default outline
+   (or nothing, which the box-shadow:none above was leaving). */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
+  border-color: var(--ds-brand) !important;
+  box-shadow: 0 0 0 3px rgba(10, 158, 110, 0.18), 0 2px 6px rgba(10, 158, 110, 0.12) !important;
+  background: var(--gear-surface) !important;
+}
+:root[data-theme="dark"] input:focus-visible,
+:root[data-theme="dark"] select:focus-visible,
+:root[data-theme="dark"] textarea:focus-visible {
+  border-color: #3fd39e !important;
+  box-shadow: 0 0 0 3px rgba(63, 211, 158, 0.24), 0 2px 6px rgba(63, 211, 158, 0.14) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--gear-placeholder) !important;
+}
+
+/* macOS-grade finish: brand-tinted text selection + thin, rounded, overlay-
+   style scrollbars that fade into the surface the way Mac trackpad scrollbars
+   do. Additive and global; each self-scoped page inherits it. */
+::selection { background: rgba(10, 158, 110, 0.18); }
+:root[data-theme="dark"] ::selection { background: rgba(63, 211, 158, 0.26); }
+
+* { scrollbar-width: thin; scrollbar-color: rgba(100, 116, 139, 0.4) transparent; }
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.55); background-clip: padding-box; }
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); background-clip: padding-box; }
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); background-clip: padding-box; }
+/* GEARBOX GOOGLE-LIKE THEME END */
+
+/* Dark shell theme, for the dashboard/library chrome (matches ONEVYRT's
+   dashboard, which sits on slate-950/900 while the canvas workspace stays
+   on the light gear-* theme above). No CSS variables needed here yet since
+   Tailwind's own slate/emerald palette covers it directly in class names. */
+
+/* ============================================================================
+   ILLUSTRATION SYSTEM STYLES
+   Reusable SVG illustrations for visual storytelling
+============================================================================ */
+
+.illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.illustration img {
+  display: block;
+  object-fit: contain;
+}
+
+.illustration--responsive {
+  width: 100%;
+}
+
+.illustration--compact {
+  max-width: 300px;
+}
+
+.illustration--error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: var(--ds-bg-subtle, #f1f4f9);
+  border-radius: 8px;
+  color: var(--ds-text-tertiary, #94a3b8);
+  font-size: 14px;
+}
+
+/* ============================================================================
+   PROGRAMME PROGRESS STYLES
+   Visual progress tracker with chapter cards
+============================================================================ */
+
+.programme-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--ds-text-primary, #111827);
+}
+
+.progress-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px;
+  background: var(--ds-surface, #fff);
+  border: 1px solid var(--ds-border-subtle, #e8ecf2);
+  border-radius: 12px;
+}
+
+.progress-summary-main {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.progress-summary-count {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.count-number {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 12px;
+  color: var(--ds-text-secondary, #475569);
+}
+
+.progress-summary-pct {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.progress-summary-readiness {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  padding-left: 16px;
+  border-left: 1px solid var(--ds-border-subtle, #e8ecf2);
+}
+
+.readiness-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ds-text-tertiary, #586173);
+}
+
+.readiness-score {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: var(--ds-bg-subtle, #f1f4f9);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.chapters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chapters-list.compact {
+  gap: 8px;
+}
+
+.chapter-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: white;
+  border: 1px solid var(--ds-border-subtle, #e8ecf2);
+  border-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.chapter-card:hover {
+  border-color: var(--ds-border-default, #dadce0);
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06);
+}
+
+.chapter-card.current {
+  border-color: currentColor;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.1);
+}
+
+.chapter-card.locked {
+  opacity: 0.65;
+}
+
+.chapter-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chapter-card-num {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.chapter-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chapter-card-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chapter-card-progress {
+  font-size: 12px;
+  color: var(--ds-text-secondary, #475569);
+}
+
+.chapter-card-status {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.status-success {
+  background: var(--ds-success-soft, #e7f6f0);
+  color: var(--ds-success, #088057);
+}
+
+.status-warning {
+  background: var(--ds-warning-soft, #fff4e0);
+  color: var(--ds-warning, #b45309);
+}
+
+.status-pending {
+  background: var(--ds-info-soft, #e6effe);
+  color: var(--ds-info, #2563eb);
+}
+
+.status-locked {
+  background: var(--ds-bg-subtle, #f1f4f9);
+  color: var(--ds-text-tertiary, #94a3b8);
+}
+
+.chapter-card-bar-container {
+  width: 100%;
+  height: 4px;
+  background: var(--ds-bg-subtle, #f1f4f9);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.chapter-card-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.programme-progress.compact .progress-summary {
+  display: none;
+}
+
+.chapter-card.compact {
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.chapter-card.compact .chapter-card-num {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+
+.chapter-card.compact .chapter-card-title {
+  font-size: 13px;
+}
+
+.chapter-card.compact .chapter-card-progress {
+  font-size: 11px;
+}
+
+/* ============================================================================
+   MOBILE-FIRST RESPONSIVE DESIGN UTILITIES
+   Ensure excellent UX across 375px (mobile small) to 1920px (desktop large)
+   See docs/MOBILE_TESTING_CHECKLIST.md for complete mobile spec.
+   ============================================================================ */
+
+/* Touch-friendly minimum dimensions for interactive elements */
+button, a[role="button"], input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"] {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Override for elements that shouldn't grow */
+button.compact, .compact button,
+a.compact, .compact a {
+  min-height: auto;
+  min-width: auto;
+}
+
+/* Form inputs: readable font size on mobile, full width in containers */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"],
+input[type="tel"], input[type="url"], input[type="date"], input[type="time"],
+textarea, select {
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+textarea {
+  min-height: 120px;
+  font-size: 16px;
+}
+
+/* Prevent text zooming on iOS input focus while keeping accessibility zoom */
+@supports (padding: max(0px)) {
+  input, textarea, select {
+    padding: max(10px, 8px + env(safe-area-inset-bottom)) 12px;
+  }
+}
+
+/* Mobile-safe areas: notches, Dynamic Island, home indicator */
+@supports (padding: env(safe-area-inset-left)) {
+  html {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  /* Sticky nav/footer adjustments */
+  nav, footer, .sticky-bottom {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Text overflow handling for mobile */
+.truncate-mobile {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mobile-responsive font scaling using clamp() */
+.text-responsive {
+  font-size: clamp(14px, 3vw, 18px);
+}
+
+.text-responsive-lg {
+  font-size: clamp(18px, 5vw, 32px);
+}
+
+.text-responsive-sm {
+  font-size: clamp(12px, 2.5vw, 14px);
+}
+
+/* Flex wrapping for mobile */
+.flex-mobile-wrap {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .flex-mobile-wrap {
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+}
+
+/* Grid responsive columns */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+/* Padding responsive: smaller on mobile, larger on desktop */
+.px-mobile {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+@media (min-width: 640px) {
+  .px-mobile {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.py-mobile {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+@media (min-width: 640px) {
+  .py-mobile {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+}
+
+/* Hide elements on mobile or desktop */
+.hide-mobile {
+  display: none;
+}
+
+.show-mobile {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+  .show-mobile {
+    display: none;
+  }
+}
+
+/* Scroll behavior improvements */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-smooth {
+    scroll-behavior: auto;
+  }
+}
+
+/* Momentum scrolling on iOS */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* No-scroll state (when modal/menu open) */
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* High-contrast focus indicators for keyboard navigation — enhanced visibility */
+:focus-visible {
+  outline: 2px solid var(--ds-brand, #088057);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(8, 128, 87, 0.12);
+}
+
+/* Ensure images are responsive by default */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Video and iframe responsive containers */
+.aspect-ratio-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+}
+
+.aspect-ratio-container iframe,
+.aspect-ratio-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Mobile-optimized modal/dialog */
+@media (max-width: 639px) {
+  dialog, .modal {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    max-height: 90vh;
+  }
+}
+
+/* Prevent horizontal scroll overflow on mobile */
+body, html {
+  overflow-x: hidden;
+}
+
+/* Prevent double-tap zoom on buttons (iOS Safari) */
+button, a, input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"] {
+  touch-action: manipulation;
+}
+
+/* Ensure proper text rendering on subpixel devices */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Small media query hint for tables and dense layouts */
+@media (max-width: 639px) {
+  /* Indicate horizontal scroll on tables */
+  .table-scroll-hint::after {
+    content: "← Swipe to scroll →";
+    display: block;
+    font-size: 11px;
+    color: var(--ds-text-tertiary, #94a3b8);
+    padding: 6px 0;
+    text-align: center;
+    font-weight: 500;
+  }
+}

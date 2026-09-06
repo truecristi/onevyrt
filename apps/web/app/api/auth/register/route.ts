@@ -1,51 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
-import { registerRequestSchema } from "@onevyrt/contracts";
-import { registerUser, EmailAlreadyRegisteredError } from "@onevyrt/domain";
-import { RateLimiter } from "@onevyrt/security";
-import { logger, newCorrelationId } from "@onevyrt/observability";
-import { getServerContext } from "@/lib/server";
-import { requireCsrf } from "@/lib/csrf";
-import { setSessionCookie } from "@/lib/session";
-import { getClientIdentifier } from "@/lib/client-ip";
+import { registerUser, createSession, sessionCookie } from "../../../../lib/auth";
+import { ensurePersonalWorkspace } from "../../../../lib/workspaces";
+import { recordReferral } from "../../../../lib/referrals";
+import { checkRateLimit, clientIp, retryAfterHeader } from "../../../../lib/rate-limit";
+import { withRouteLogging, logError } from "../../../../lib/logger";
+import { track } from "../../../../lib/analytics";
+export const runtime = "nodejs";
+const json = (d: unknown, s = 200, h: Record<string, string> = {}): Response =>
+  new Response(JSON.stringify(d), { status: s, headers: { "content-type": "application/json", ...h } });
 
-// §11 rate limit: 5 registration attempts per IP per 15 minutes. In-memory
-// per §RateLimiter's own documented limitation (not durable, single
-// instance) - matches Phase 1's stated scope.
-const registerLimiter = new RateLimiter(5, 15 * 60 * 1000);
+// Registration has no per-email lockout (unlike login), so an IP limit is the only
+// guard against mass account creation. Generous enough for real shared-IP traffic
+// (offices, mobile carrier NAT) but well below what a scripted signup flood needs.
+const REGISTER_LIMIT = { windowMs: 60 * 60 * 1000, max: 10 };
 
-export async function POST(request: NextRequest) {
-  const correlationId = newCorrelationId();
+export const POST = withRouteLogging("api/auth/register:POST", async (req: Request): Promise<Response> => {
+  const limit = await checkRateLimit(`register:ip:${clientIp(req)}`, REGISTER_LIMIT);
+  if (!limit.allowed) return json({ error: "Too many registration attempts. Try again later." }, 429, retryAfterHeader(limit.retryAfterMs!));
 
-  if (!requireCsrf(request)) {
-    return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
-  }
-
-  const ip = getClientIdentifier(request);
-  if (!registerLimiter.check(`register:${ip}`)) {
-    return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
-  }
-
-  const parsed = registerRequestSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid request", issues: parsed.error.flatten() },
-      { status: 400 },
-    );
-  }
-
-  const { env, db } = getServerContext();
-
+  let body: { email?: unknown; password?: unknown; ref?: unknown };
+  try { body = await req.json(); } catch { return json({ error: "invalid JSON body" }, 400); }
+  if (typeof body.email !== "string" || typeof body.password !== "string") return json({ error: "email and password are required" }, 400);
   try {
-    const result = await registerUser(db, env.AUTH_SECRET, parsed.data);
-    setSessionCookie(result.sessionToken);
-    logger.info("user registered", { correlationId, userId: result.user.id });
-
-    return NextResponse.json({ user: result.user, workspace: result.workspace }, { status: 201 });
-  } catch (error) {
-    if (error instanceof EmailAlreadyRegisteredError) {
-      return NextResponse.json({ error: error.message }, { status: 409 });
+    const user = await registerUser(body.email, body.password);
+    void track("user_registered", { userId: user.id });
+    const token = await createSession(user.id, { userAgent: req.headers.get("user-agent") ?? undefined });
+    if (typeof body.ref === "string" && body.ref.trim()) {
+      // Best-effort: an unknown/expired code is silently ignored (see
+      // recordReferral) rather than blocking account creation over it. But an
+      // UNEXPECTED failure (DB error, not a bad code) silently loses referral
+      // credit and turns into an unanswerable "my referral didn't apply"
+      // ticket — log it so it's diagnosable, while still not failing signup.
+      const ws = await ensurePersonalWorkspace(user.id);
+      await recordReferral(body.ref, ws.id, user.id).catch((err) => logError("api/auth/register:referral", err, { userId: user.id, ref: body.ref }));
     }
-    logger.error("registration failed", { correlationId, error: (error as Error).message });
-    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
-  }
-}
+    return json({ id: user.id, email: user.email }, 200, { "set-cookie": sessionCookie(token) });
+  } catch (e) { return json({ error: e instanceof Error ? e.message : "registration failed" }, 400); }
+});

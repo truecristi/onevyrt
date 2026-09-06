@@ -1,0 +1,486 @@
+/**
+ * Accessibility Utilities & Helpers
+ * Styles for accessible components including screen reader only content,
+ * focus management, and skip links.
+ */
+
+/* Screen Reader Only Content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Allow sr-only to be visible when focused */
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Skip to Main Content Link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background-color: #0066cc;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+  border-radius: 0 0 4px 0;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Focus Visible Styles */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Ensure focus outline is always visible */
+*:focus-visible {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: more) {
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    border-width: 2px;
+  }
+
+  /* Increase focus outline visibility */
+  *:focus-visible {
+    outline-width: 4px;
+  }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .skip-to-main {
+    background-color: #5a9cff;
+  }
+
+  *:focus-visible {
+    outline-color: #90caf9;
+  }
+}
+
+/* Accessible Tab Styles */
+[role="tablist"] {
+  --focus: #0066cc;
+  --accent: #0066cc;
+  --muted: #718096;
+  --disabled: #999999;
+  --border3: #e2e8f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  [role="tablist"] {
+    --focus: #90caf9;
+    --accent: #5a9cff;
+    --muted: #a0aec0;
+    --disabled: #666666;
+    --border3: #2d3748;
+  }
+}
+
+/* Tab Button Focus States */
+[role="tab"]:focus-visible {
+  outline: 3px solid var(--focus, #0066cc);
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 1px rgba(0, 102, 204, 0.5);
+}
+
+/* Keyboard-only focus (not on touch) */
+@media (hover: hover) {
+  [role="tab"]:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* Touch device adjustments */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch target size */
+  [role="tab"] {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  button {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .sr-only:not(:focus),
+  .skip-to-main {
+    display: none;
+  }
+}
+
+/* Visibility Utilities */
+.visually-hidden {
+  position: absolute !important;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  width: 1px;
+  height: 1px;
+  word-wrap: normal;
+}
+
+/* Accessible Focus Indicator */
+.focus-indicator:focus-visible {
+  outline: 3px solid var(--focus, #0066cc);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Semantic Button Focus */
+button:focus-visible {
+  outline: 3px solid var(--focus, #0066cc);
+  outline-offset: -3px;
+}
+
+/* Link Focus */
+a:focus-visible {
+  outline: 3px solid var(--focus, #0066cc);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Form Input Focus */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--focus, #0066cc);
+  outline-offset: 2px;
+}
+
+/* Disabled Input Styles */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Aria-disabled Attribute Support */
+[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Live Region (aria-live) */
+[aria-live] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Polite live regions that appear in content */
+[aria-live="polite"]:not(.sr-only) {
+  min-height: 1px;
+}
+
+/* Alert regions */
+[aria-live="assertive"] {
+  font-weight: 600;
+}
+
+/* Error Message Styles */
+[role="alert"],
+.alert {
+  padding: 12px;
+  margin: 8px 0;
+  border-left: 4px solid #dc2626;
+  background-color: #fee2e2;
+  color: #7f1d1d;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  [role="alert"],
+  .alert {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+  }
+}
+
+/* Success Message Styles */
+.success {
+  padding: 12px;
+  margin: 8px 0;
+  border-left: 4px solid #16a34a;
+  background-color: #dcfce7;
+  color: #15803d;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .success {
+    background-color: #15803d;
+    color: #86efac;
+  }
+}
+
+/* Warning Message Styles */
+.warning {
+  padding: 12px;
+  margin: 8px 0;
+  border-left: 4px solid #d97706;
+  background-color: #fef3c7;
+  color: #92400e;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .warning {
+    background-color: #92400e;
+    color: #fde68a;
+  }
+}
+
+/* Info Message Styles */
+.info {
+  padding: 12px;
+  margin: 8px 0;
+  border-left: 4px solid #0284c7;
+  background-color: #e0f2fe;
+  color: #0c4a6e;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .info {
+    background-color: #0c4a6e;
+    color: #7dd3fc;
+  }
+}
+
+/* Loading Spinner (Accessible) */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0, 102, 204, 0.3);
+  border-top-color: #0066cc;
+  border-radius: 50%;
+  animation: spinner-spin 1s linear infinite;
+}
+
+@keyframes spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Announce loading state to screen readers */
+.spinner[aria-label] {
+  /* Keep label accessible */
+}
+
+/* Tooltip Accessibility */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::after {
+  opacity: 1;
+}
+
+/* Color Contrast Checker (testing) */
+.contrast-checker {
+  display: grid;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.contrast-row {
+  padding: 16px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Test different contrasts */
+.contrast-aaa {
+  background-color: #0066cc;
+  color: white;
+}
+
+.contrast-aa {
+  background-color: #0066cc;
+  color: #b3d9ff;
+}
+
+.contrast-fail {
+  background-color: #0066cc;
+  color: #ccddff;
+}
+
+/* Responsive Text Sizing */
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Ensure minimum readable font size */
+body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+p,
+li,
+label,
+button,
+input,
+select,
+textarea {
+  font-size: inherit;
+}
+
+/* Accessible List Styles */
+ul,
+ol {
+  padding-left: 2em;
+}
+
+li {
+  margin-bottom: 0.5em;
+  line-height: 1.6;
+}
+
+/* Table Accessibility */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: #f3f4f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  thead {
+    background-color: #374151;
+  }
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #d1d5db;
+}
+
+@media (prefers-color-scheme: dark) {
+  th,
+  td {
+    border-bottom-color: #4b5563;
+  }
+}
+
+th {
+  font-weight: 600;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+@media (prefers-color-scheme: dark) {
+  tbody tr:nth-child(even) {
+    background-color: #1f2937;
+  }
+}
+
+/* Tooltip with aria-label (prefer this over data-tooltip) */
+.with-tooltip {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted currentColor;
+}
+
+/* Caption for tables and figures */
+figcaption,
+caption {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  figcaption,
+  caption {
+    color: #9ca3af;
+  }
+}

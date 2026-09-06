@@ -1,0 +1,119 @@
+<svg viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="funnelGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#16a34a;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#15803d;stop-opacity:0.9" />
+    </linearGradient>
+    <linearGradient id="funnelGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d97706;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#b45309;stop-opacity:0.9" />
+    </linearGradient>
+    <linearGradient id="funnelGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:0.9" />
+    </linearGradient>
+    <linearGradient id="funnelGradient4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#64748b;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#475569;stop-opacity:0.7" />
+    </linearGradient>
+    <style>
+      .funnel-section { transition: all 0.3s ease; }
+      .funnel-section:hover { filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2)); }
+      .funnel-label { font-weight: 600; }
+      .bottleneck-highlight { animation: pulse 2s ease-in-out infinite; }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="250" y="35" font-size="24" font-weight="700" text-anchor="middle" fill="#111827">
+    Find Your Bottleneck
+  </text>
+  <text x="250" y="60" font-size="13" text-anchor="middle" fill="#6b7280">
+    Identify the one constraint holding growth back
+  </text>
+
+  <!-- Top funnel section (Good) -->
+  <g class="funnel-section">
+    <polygon points="100,100 400,100 380,180 120,180" fill="url(#funnelGradient1)"/>
+    <text x="250" y="135" font-size="16" font-weight="700" text-anchor="middle" fill="white" class="funnel-label">
+      1000 Visitors
+    </text>
+    <text x="250" y="160" font-size="12" text-anchor="middle" fill="rgba(255,255,255,0.9)">
+      Traffic flowing in
+    </text>
+  </g>
+
+  <!-- Arrow between sections -->
+  <g opacity="0.4">
+    <line x1="250" y1="185" x2="250" y2="205" stroke="#6b7280" stroke-width="2"/>
+    <polygon points="250,210 245,200 255,200" fill="#6b7280"/>
+  </g>
+
+  <!-- Second funnel section (Getting smaller) -->
+  <g class="funnel-section">
+    <polygon points="130,220 370,220 340,300 160,300" fill="url(#funnelGradient2)"/>
+    <text x="250" y="250" font-size="16" font-weight="700" text-anchor="middle" fill="white" class="funnel-label">
+      500 Leads
+    </text>
+    <text x="250" y="275" font-size="12" text-anchor="middle" fill="rgba(255,255,255,0.9)">
+      50% conversion
+    </text>
+  </g>
+
+  <!-- Arrow -->
+  <g opacity="0.4">
+    <line x1="250" y1="305" x2="250" y2="325" stroke="#6b7280" stroke-width="2"/>
+    <polygon points="250,330 245,320 255,320" fill="#6b7280"/>
+  </g>
+
+  <!-- BOTTLENECK - Third funnel section (Significantly smaller) -->
+  <g class="funnel-section bottleneck-highlight">
+    <polygon points="160,345 340,345 300,425 200,425" fill="url(#funnelGradient3)"/>
+    <text x="250" y="375" font-size="16" font-weight="700" text-anchor="middle" fill="white" class="funnel-label">
+      100 Appointments
+    </text>
+    <text x="250" y="400" font-size="12" text-anchor="middle" fill="rgba(255,255,255,0.9)">
+      Only 20% book
+    </text>
+
+    <!-- Bottleneck warning label -->
+    <circle cx="420" cy="385" r="18" fill="#dc2626"/>
+    <text x="420" y="395" font-size="20" text-anchor="middle" fill="white">⚠</text>
+  </g>
+
+  <!-- Arrow -->
+  <g opacity="0.4">
+    <line x1="250" y1="430" x2="250" y2="450" stroke="#6b7280" stroke-width="2"/>
+    <polygon points="250,455 245,445 255,445" fill="#6b7280"/>
+  </g>
+
+  <!-- Bottom (Lost) -->
+  <g class="funnel-section">
+    <polygon points="200,470 300,470 280,520 220,520" fill="url(#funnelGradient4)"/>
+    <text x="250" y="495" font-size="14" font-weight="700" text-anchor="middle" fill="white" class="funnel-label">
+      20 Sales
+    </text>
+    <text x="250" y="513" font-size="11" text-anchor="middle" fill="rgba(255,255,255,0.8)">
+      2% of visitors
+    </text>
+  </g>
+
+  <!-- Annotation box for bottleneck -->
+  <g>
+    <rect x="50" y="380" width="90" height="70" fill="white" stroke="#dc2626" stroke-width="2" rx="8"/>
+    <line x1="140" y1="405" x2="155" y2="405" stroke="#dc2626" stroke-width="2"/>
+
+    <text x="60" y="400" font-size="12" font-weight="700" fill="#dc2626">THE BOTTLENECK</text>
+    <text x="60" y="418" font-size="11" fill="#475569">Only 20% of leads</text>
+    <text x="60" y="433" font-size="11" fill="#475569">book appointments</text>
+  </g>
+
+  <!-- Guidance text -->
+  <text x="250" y="560" font-size="12" text-anchor="middle" fill="#6b7280" font-style="italic">
+    Improve this ONE constraint to unlock growth
+  </text>
+</svg>

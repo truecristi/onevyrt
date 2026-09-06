@@ -1,0 +1,43 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <style>
+      .empty-circle { opacity: 0.8; }
+      .empty-icon { font-size: 64px; }
+    </style>
+  </defs>
+
+  <!-- Background circles -->
+  <circle cx="150" cy="150" r="140" fill="#eff6ff" class="empty-circle"/>
+  <circle cx="150" cy="150" r="120" fill="#f0fdf4" class="empty-circle"/>
+  <circle cx="150" cy="150" r="100" fill="#fef3c7" class="empty-circle"/>
+
+  <!-- Briefcase illustration -->
+  <g transform="translate(150, 100)">
+    <!-- Briefcase body -->
+    <rect x="-35" y="-5" width="70" height="50" fill="none" stroke="#6b7280" stroke-width="2.5" rx="4"/>
+    <!-- Briefcase handle -->
+    <path d="M -25 -5 Q -25 -25 0 -28 Q 25 -25 25 -5" stroke="#6b7280" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <!-- Divider line -->
+    <line x1="-35" y1="10" x2="35" y2="10" stroke="#6b7280" stroke-width="2"/>
+    <!-- Small details -->
+    <circle cx="-15" cy="5" r="2" fill="#6b7280" opacity="0.5"/>
+    <circle cx="15" cy="5" r="2" fill="#6b7280" opacity="0.5"/>
+  </g>
+
+  <!-- Decorative stars -->
+  <g opacity="0.5" fill="#d97706">
+    <polygon points="40,80 43,89 53,89 45,95 48,104 40,98 32,104 35,95 27,89 37,89" transform="scale(0.6)"/>
+    <polygon points="260,120 263,129 273,129 265,135 268,144 260,138 252,144 255,135 247,129 257,129" transform="scale(0.5)"/>
+  </g>
+
+  <!-- Text -->
+  <text x="150" y="210" font-size="16" font-weight="700" text-anchor="middle" fill="#111827">
+    Start Your First Project
+  </text>
+  <text x="150" y="235" font-size="12" text-anchor="middle" fill="#6b7280">
+    Create a funnel or campaign to begin
+  </text>
+  <text x="150" y="255" font-size="11" text-anchor="middle" fill="#94a3b8">
+    Your business transformation starts here
+  </text>
+</svg>
