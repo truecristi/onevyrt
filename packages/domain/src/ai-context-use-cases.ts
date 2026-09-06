@@ -191,15 +191,24 @@ export async function assembleWorkspaceContext(
   const manifest: ContextManifestEntry[] = [];
   const sections: string[] = [];
 
-  for (const contextClass of input.contextClasses) {
-    const { entries, section } = await (contextClass === "business_profile"
-      ? loadBusinessProfile(db, input.workspaceId)
-      : contextClass === "goals"
-        ? loadGoals(db, input.workspaceId, limit)
-        : contextClass === "assumptions"
-          ? loadAssumptions(db, input.workspaceId, limit)
-          : loadDecisions(db, input.workspaceId, limit));
+  // Phase 8 performance audit finding: this used to await each class's
+  // loader one at a time - with up to 4 known classes, that's 4 sequential
+  // round trips where one concurrent batch would do. Promise.all preserves
+  // input.contextClasses' order in the results, so the manifest/sections
+  // below build up in the same deterministic order as before.
+  const loaded = await Promise.all(
+    input.contextClasses.map((contextClass) =>
+      contextClass === "business_profile"
+        ? loadBusinessProfile(db, input.workspaceId)
+        : contextClass === "goals"
+          ? loadGoals(db, input.workspaceId, limit)
+          : contextClass === "assumptions"
+            ? loadAssumptions(db, input.workspaceId, limit)
+            : loadDecisions(db, input.workspaceId, limit),
+    ),
+  );
 
+  for (const { entries, section } of loaded) {
     manifest.push(...entries);
     if (section) sections.push(section);
   }
