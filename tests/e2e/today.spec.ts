@@ -43,7 +43,7 @@ test("a fresh workspace's Today page shows real, empty scorecard stats and an ho
   await expect(page.getByText("No recommendations yet")).toBeVisible();
 });
 
-test("Review is a real link that honestly says it isn't built yet; Learn, Build and Execute have real pages", async ({
+test("all four other destinations - Learn, Build, Execute, Review - are real pages, no placeholders left", async ({
   page,
 }) => {
   const email = uniqueEmail();
@@ -56,42 +56,27 @@ test("Review is a real link that honestly says it isn't built yet; Learn, Build 
   await page.getByRole("link", { name: /Nav Test Workspace/ }).click();
   await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
 
-  // Learn and Build both have real pages now (tests/e2e/learn.spec.ts and
-  // build.spec.ts cover their real journeys) - just confirm here that each
-  // renders a real page, not the shared "isn't built yet" placeholder the
-  // remaining two still are. Build's own empty state ("No offers yet") is
-  // workspace-scoped so it's safe to assert; Learn's catalog is
-  // platform-wide global state, so there we only assert the heading, not
-  // an empty catalog (build.spec.ts / learn.spec.ts publish their own).
-  await page.getByRole("link", { name: "Learn", exact: true }).click();
-  await expect(page).toHaveURL(/\/learn$/);
-  await expect(page.getByRole("heading", { name: "Learn" })).toBeVisible();
-  await expect(page.getByText("Learn isn't built yet")).not.toBeVisible();
+  // Every destination now has a real page - the shared "isn't built yet"
+  // placeholder is gone entirely (its component was deleted). Each check
+  // confirms the destination's own heading renders. Build/Execute/Review
+  // also assert their workspace-scoped empty states (safe on a fresh
+  // workspace); Learn's catalog is platform-wide global state, so there we
+  // only assert the heading (other specs publish their own programs).
+  const checks: { label: string; path: string; heading: string; emptyState?: string }[] = [
+    { label: "Learn", path: "learn", heading: "Learn" },
+    { label: "Build", path: "build", heading: "Build", emptyState: "No offers yet" },
+    { label: "Execute", path: "execute", heading: "Execute", emptyState: "No tasks yet" },
+    { label: "Review", path: "review", heading: "Review", emptyState: "No weekly reviews yet" },
+  ];
 
-  await page.goBack();
-  await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
-
-  await page.getByRole("link", { name: "Build", exact: true }).click();
-  await expect(page).toHaveURL(/\/build$/);
-  await expect(page.getByRole("heading", { name: "Build" })).toBeVisible();
-  await expect(page.getByText("Build isn't built yet")).not.toBeVisible();
-
-  await page.goBack();
-  await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
-
-  // Execute has a real page now too (tests/e2e/execute.spec.ts covers its
-  // task journey); a fresh workspace shows its own workspace-scoped empty
-  // state, safe to assert.
-  await page.getByRole("link", { name: "Execute", exact: true }).click();
-  await expect(page).toHaveURL(/\/execute$/);
-  await expect(page.getByRole("heading", { name: "Execute" })).toBeVisible();
-  await expect(page.getByText("No tasks yet")).toBeVisible();
-
-  await page.goBack();
-  await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
-
-  // Review is the last remaining "isn't built yet" placeholder.
-  await page.getByRole("link", { name: "Review", exact: true }).click();
-  await expect(page).toHaveURL(/\/review$/);
-  await expect(page.getByText("Review isn't built yet")).toBeVisible();
+  for (const check of checks) {
+    await page.getByRole("link", { name: check.label, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/${check.path}$`));
+    await expect(page.getByRole("heading", { name: check.heading })).toBeVisible();
+    if (check.emptyState) {
+      await expect(page.getByText(check.emptyState)).toBeVisible();
+    }
+    await page.goBack();
+    await expect(page).toHaveURL(/\/workspaces\/[^/]+\/today$/);
+  }
 });
