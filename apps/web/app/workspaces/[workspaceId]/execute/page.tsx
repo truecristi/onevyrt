@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listTasks } from "@onevyrt/domain";
 import { EmptyState } from "@onevyrt/design-system";
@@ -114,6 +115,18 @@ export default async function ExecutePage({ params }: { params: { workspaceId: s
       )}
 
       <CreateTaskForm workspaceId={params.workspaceId} />
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">More</h2>
+        <p className="text-sm">
+          <Link
+            href={`/workspaces/${params.workspaceId}/execute/launches`}
+            className="text-blue-600 hover:underline"
+          >
+            Launches &rarr;
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }
