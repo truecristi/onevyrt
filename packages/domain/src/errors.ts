@@ -462,3 +462,18 @@ export class TaskProposalNotPendingError extends Error {
     this.name = "TaskProposalNotPendingError";
   }
 }
+
+export class ImprovementLoopNotFoundError extends Error {
+  constructor(loopId: string) {
+    super(`Improvement loop ${loopId} not found in this workspace`);
+    this.name = "ImprovementLoopNotFoundError";
+  }
+}
+
+/** Thrown when closeImprovementLoop is called on a loop that's already closed - see improvement-loop-use-cases.ts. */
+export class ImprovementLoopAlreadyClosedError extends Error {
+  constructor(loopId: string) {
+    super(`Improvement loop ${loopId} is already closed`);
+    this.name = "ImprovementLoopAlreadyClosedError";
+  }
+}
