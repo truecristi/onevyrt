@@ -19,13 +19,13 @@
     "@onevyrt/domain": "workspace:*",
     "@onevyrt/observability": "workspace:*",
     "@onevyrt/security": "workspace:*",
-    "drizzle-orm": "^0.36.1",
+    "drizzle-orm": "^0.45.2",
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@types/node": "^22.9.0",
+    "@types/node": "^22.20.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
